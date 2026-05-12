@@ -1,8 +1,10 @@
-<html lang="ja"><head>
+<!DOCTYPE html>
+<html lang="ja">
+<head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>✅ Task Manager</title>
-<link rel="icon" href="data:image/svg+xml,&lt;svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'&gt;&lt;text y='.9em' font-size='90'&gt;✅&lt;/text&gt;&lt;/svg&gt;">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✅</text></svg>">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap');
 :root{
@@ -353,7 +355,7 @@ header{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;alig
     min-height:unset;
   }
   .ic-tasks{max-height:160px;overflow-y:auto;}
-  .routine-section{display:none;} /* routines hidden on mobile, accessible via scroll */
+  .routine-section{display:none;}
 
   /* main col */
   .main-col{padding:10px 10px;}
@@ -392,19 +394,26 @@ header{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;alig
   .cap-acts{flex-wrap:wrap;gap:6px;}
   .cap-acts button{flex:1;text-align:center;}
 
-  /* project section */
-  .proj-toolbar{padding:8px 10px;gap:6px;}
-  .proj-filter-group{overflow-x:auto;flex-wrap:nowrap;}
-  .proj-filter{white-space:nowrap;flex-shrink:0;}
+  /* project section - スマホでも表示 */
+  .proj-toolbar{padding:8px 10px;gap:6px;flex-wrap:wrap;}
+  .proj-filter-group{overflow-x:auto;flex-wrap:nowrap;display:flex;}
+  .proj-filter{white-space:nowrap;flex-shrink:0;font-size:11px;padding:3px 10px;}
+  .proj-new-btn{font-size:12px;padding:6px 12px;}
   #projListView{padding:10px 10px;}
   #projDetailView{padding:10px 10px;}
-  .proj-grid{grid-template-columns:1fr 1fr;}
+  .proj-grid{grid-template-columns:1fr 1fr;gap:8px;}
+  .proj-card{padding:10px 10px;}
+  .proj-name{font-size:12px;}
   .pd-hdr{flex-wrap:wrap;gap:6px;}
   .pd-title{font-size:13px;}
   .st-add-row{flex-wrap:wrap;}
   .st-add-row input[type=date]{min-width:0;flex:1;}
+  .task-to-proj{margin-top:8px;}
 
-  /* mobile bottom nav for quick actions */
+  /* project view in matrix - single column */
+  .proj-group{margin-bottom:6px;}
+
+  /* mobile FAB */
   .mobile-fab{
     display:flex;
     position:fixed;
@@ -426,7 +435,6 @@ header{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;alig
 }
 @media (min-width:701px){
   .mobile-fab{display:none;}
-  /* show routines on desktop */
   .routine-section{display:block;}
 }
 </style>
@@ -435,7 +443,7 @@ header{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;alig
 
 <header>
   <div class="htitle">✅ Task Manager</div>
-  <div class="hdate" id="dateLine">2026/05/12 (火)</div>
+  <div class="hdate" id="dateLine"></div>
   <button class="btn-cleardone" onclick="clearDone()" title="チェック済みをまとめて削除">🗑 完了済み削除</button>
   <button class="btn-export" onclick="exportHTML()" title="データ入りHTMLをダウンロード">⬇ エクスポート</button>
   <button class="btn-new" onclick="openCapture()">+ 追加 <span class="kbd">⌘K</span></button>
@@ -453,8 +461,8 @@ header{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;alig
   <button class="filter-btn" onclick="setFilter('both',this)">両社共通</button>
   <button class="filter-btn" onclick="setFilter('urgent',this)">今すぐ</button>
   <button class="filter-btn" onclick="setFilter('private',this)">私用</button>
-  <button class="filter-btn" onclick="setFilter('all',this)">すべて</button>
-  <button class="filter-btn proj-view-btn active" id="projViewBtn" onclick="setFilter('projview',this)">📁 プロジェクト表示</button>
+  <button class="filter-btn active" onclick="setFilter('all',this)">すべて</button>
+  <button class="filter-btn proj-view-btn" id="projViewBtn" onclick="setFilter('projview',this)">📁 プロジェクト表示</button>
   <div class="spacer"></div>
   <div class="view-switch">
     <button class="view-btn active" id="vMatrix" onclick="setView('matrix')">４象限</button>
@@ -470,7 +478,7 @@ header{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;alig
       <div class="ic-count" id="inboxCount">0件</div>
     </div>
     <div class="ic-add">
-      <input class="ic-input" id="iqaInput" placeholder="思いついたことを入力…" onkeydown="if(event.key==='Enter'&amp;&amp;!event.isComposing)iqaAdd()">
+      <input class="ic-input" id="iqaInput" placeholder="思いついたことを入力…" onkeydown="if(event.key==='Enter'&&!event.isComposing)iqaAdd()" />
       <div class="ic-meta">
         <select class="ic-select" id="iqaCo">
           <option value="both">両社共通</option>
@@ -483,7 +491,7 @@ header{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;alig
       <div class="ic-hint">Enterで保存 → あとでQ1〜Q4に振り分け</div>
     </div>
     <div class="ic-tasks" id="icTasks">
-      <div class="ic-empty" id="icEmpty" style="">思いついたらここに入れてあとで整理</div>
+      <div class="ic-empty" id="icEmpty">思いついたらここに入れてあとで整理</div>
     </div>
 
     <!-- 週次定例 -->
@@ -493,10 +501,10 @@ header{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;alig
         <div class="routine-hdr-label">週次定例</div>
         <div class="routine-toggle" id="rw-toggle">▲</div>
       </div>
-      <div class="routine-body" id="rw-body" style="display: flex; flex-direction: column;">
+      <div class="routine-body" id="rw-body">
         <div id="rw-items"></div>
         <div class="routine-add">
-          <input id="rw-input" placeholder="定例業務名…" onkeydown="if(event.key==='Enter'&amp;&amp;!event.isComposing)addRoutine('w')">
+          <input id="rw-input" placeholder="定例業務名…" onkeydown="if(event.key==='Enter'&&!event.isComposing)addRoutine('w')" />
           <button class="routine-add-btn" onclick="addRoutine('w')">追加</button>
         </div>
       </div>
@@ -509,58 +517,10 @@ header{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;alig
         <div class="routine-hdr-label">月次定例</div>
         <div class="routine-toggle" id="rm-toggle">▲</div>
       </div>
-      <div class="routine-body" id="rm-body" style="display: flex; flex-direction: column;">
-        <div id="rm-items"><div class="routine-item ri-done" data-rid="106"><div class="ri-handle">⠿</div>
-      <div class="ri-check" onclick="toggleRoutineDone(106)"><svg width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3 5.5L8 1" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
-      <div class="ri-label">つくし　勤怠　全員分ｱﾝﾃﾘへ</div>
-      <div class="ri-date"><select onchange="updateRoutineDate('m',106,this.value)"><option value="">日付</option><option value="1">1日</option><option value="2">2日</option><option value="3" selected="">3日</option><option value="4">4日</option><option value="5">5日</option><option value="6">6日</option><option value="7">7日</option><option value="8">8日</option><option value="9">9日</option><option value="10">10日</option><option value="11">11日</option><option value="12">12日</option><option value="13">13日</option><option value="14">14日</option><option value="15">15日</option><option value="16">16日</option><option value="17">17日</option><option value="18">18日</option><option value="19">19日</option><option value="20">20日</option><option value="21">21日</option><option value="22">22日</option><option value="23">23日</option><option value="24">24日</option><option value="25">25日</option><option value="26">26日</option><option value="27">27日</option><option value="28">28日</option><option value="29">29日</option><option value="30">30日</option><option value="31">31日</option></select></div>
-      <button class="ri-del" onclick="delRoutine('m',106)">×</button></div><div class="routine-item ri-done" data-rid="104"><div class="ri-handle">⠿</div>
-      <div class="ri-check" onclick="toggleRoutineDone(104)"><svg width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3 5.5L8 1" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
-      <div class="ri-label">つくし　経理（AMEX，口座，売上）</div>
-      <div class="ri-date"><select onchange="updateRoutineDate('m',104,this.value)"><option value="">日付</option><option value="1">1日</option><option value="2">2日</option><option value="3">3日</option><option value="4">4日</option><option value="5" selected="">5日</option><option value="6">6日</option><option value="7">7日</option><option value="8">8日</option><option value="9">9日</option><option value="10">10日</option><option value="11">11日</option><option value="12">12日</option><option value="13">13日</option><option value="14">14日</option><option value="15">15日</option><option value="16">16日</option><option value="17">17日</option><option value="18">18日</option><option value="19">19日</option><option value="20">20日</option><option value="21">21日</option><option value="22">22日</option><option value="23">23日</option><option value="24">24日</option><option value="25">25日</option><option value="26">26日</option><option value="27">27日</option><option value="28">28日</option><option value="29">29日</option><option value="30">30日</option><option value="31">31日</option></select></div>
-      <button class="ri-del" onclick="delRoutine('m',104)">×</button></div><div class="routine-item ri-done" data-rid="169"><div class="ri-handle">⠿</div>
-      <div class="ri-check" onclick="toggleRoutineDone(169)"><svg width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3 5.5L8 1" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
-      <div class="ri-label">つくしｱﾝﾃﾘ領収書送付</div>
-      <div class="ri-date"><select onchange="updateRoutineDate('m',169,this.value)"><option value="">日付</option><option value="1">1日</option><option value="2">2日</option><option value="3">3日</option><option value="4">4日</option><option value="5" selected="">5日</option><option value="6">6日</option><option value="7">7日</option><option value="8">8日</option><option value="9">9日</option><option value="10">10日</option><option value="11">11日</option><option value="12">12日</option><option value="13">13日</option><option value="14">14日</option><option value="15">15日</option><option value="16">16日</option><option value="17">17日</option><option value="18">18日</option><option value="19">19日</option><option value="20">20日</option><option value="21">21日</option><option value="22">22日</option><option value="23">23日</option><option value="24">24日</option><option value="25">25日</option><option value="26">26日</option><option value="27">27日</option><option value="28">28日</option><option value="29">29日</option><option value="30">30日</option><option value="31">31日</option></select></div>
-      <button class="ri-del" onclick="delRoutine('m',169)">×</button></div><div class="routine-item" data-rid="84"><div class="ri-handle">⠿</div>
-      <div class="ri-check" onclick="toggleRoutineDone(84)"></div>
-      <div class="ri-label">つくし給与振込</div>
-      <div class="ri-date"><select onchange="updateRoutineDate('m',84,this.value)"><option value="">日付</option><option value="1">1日</option><option value="2">2日</option><option value="3">3日</option><option value="4">4日</option><option value="5">5日</option><option value="6">6日</option><option value="7">7日</option><option value="8">8日</option><option value="9">9日</option><option value="10">10日</option><option value="11">11日</option><option value="12">12日</option><option value="13">13日</option><option value="14" selected="">14日</option><option value="15">15日</option><option value="16">16日</option><option value="17">17日</option><option value="18">18日</option><option value="19">19日</option><option value="20">20日</option><option value="21">21日</option><option value="22">22日</option><option value="23">23日</option><option value="24">24日</option><option value="25">25日</option><option value="26">26日</option><option value="27">27日</option><option value="28">28日</option><option value="29">29日</option><option value="30">30日</option><option value="31">31日</option></select></div>
-      <button class="ri-del" onclick="delRoutine('m',84)">×</button></div><div class="routine-item" data-rid="205"><div class="ri-handle">⠿</div>
-      <div class="ri-check" onclick="toggleRoutineDone(205)"></div>
-      <div class="ri-label">こば給与資金調達した</div>
-      <div class="ri-date"><select onchange="updateRoutineDate('m',205,this.value)"><option value="">日付</option><option value="1">1日</option><option value="2">2日</option><option value="3">3日</option><option value="4">4日</option><option value="5">5日</option><option value="6">6日</option><option value="7">7日</option><option value="8">8日</option><option value="9">9日</option><option value="10">10日</option><option value="11">11日</option><option value="12">12日</option><option value="13">13日</option><option value="14">14日</option><option value="15">15日</option><option value="16" selected="">16日</option><option value="17">17日</option><option value="18">18日</option><option value="19">19日</option><option value="20">20日</option><option value="21">21日</option><option value="22">22日</option><option value="23">23日</option><option value="24">24日</option><option value="25">25日</option><option value="26">26日</option><option value="27">27日</option><option value="28">28日</option><option value="29">29日</option><option value="30">30日</option><option value="31">31日</option></select></div>
-      <button class="ri-del" onclick="delRoutine('m',205)">×</button></div><div class="routine-item" data-rid="85"><div class="ri-handle">⠿</div>
-      <div class="ri-check" onclick="toggleRoutineDone(85)"></div>
-      <div class="ri-label">こば支払送信</div>
-      <div class="ri-date"><select onchange="updateRoutineDate('m',85,this.value)"><option value="">日付</option><option value="1">1日</option><option value="2">2日</option><option value="3">3日</option><option value="4">4日</option><option value="5">5日</option><option value="6">6日</option><option value="7">7日</option><option value="8">8日</option><option value="9">9日</option><option value="10">10日</option><option value="11">11日</option><option value="12">12日</option><option value="13">13日</option><option value="14">14日</option><option value="15">15日</option><option value="16">16日</option><option value="17" selected="">17日</option><option value="18">18日</option><option value="19">19日</option><option value="20">20日</option><option value="21">21日</option><option value="22">22日</option><option value="23">23日</option><option value="24">24日</option><option value="25">25日</option><option value="26">26日</option><option value="27">27日</option><option value="28">28日</option><option value="29">29日</option><option value="30">30日</option><option value="31">31日</option></select></div>
-      <button class="ri-del" onclick="delRoutine('m',85)">×</button></div><div class="routine-item" data-rid="86"><div class="ri-handle">⠿</div>
-      <div class="ri-check" onclick="toggleRoutineDone(86)"></div>
-      <div class="ri-label">こば給与計算</div>
-      <div class="ri-date"><select onchange="updateRoutineDate('m',86,this.value)"><option value="">日付</option><option value="1">1日</option><option value="2">2日</option><option value="3">3日</option><option value="4">4日</option><option value="5">5日</option><option value="6">6日</option><option value="7">7日</option><option value="8">8日</option><option value="9">9日</option><option value="10">10日</option><option value="11">11日</option><option value="12">12日</option><option value="13">13日</option><option value="14">14日</option><option value="15">15日</option><option value="16">16日</option><option value="17">17日</option><option value="18">18日</option><option value="19">19日</option><option value="20">20日</option><option value="21">21日</option><option value="22">22日</option><option value="23" selected="">23日</option><option value="24">24日</option><option value="25">25日</option><option value="26">26日</option><option value="27">27日</option><option value="28">28日</option><option value="29">29日</option><option value="30">30日</option><option value="31">31日</option></select></div>
-      <button class="ri-del" onclick="delRoutine('m',86)">×</button></div><div class="routine-item" data-rid="87"><div class="ri-handle">⠿</div>
-      <div class="ri-check" onclick="toggleRoutineDone(87)"></div>
-      <div class="ri-label">つくし家賃振込</div>
-      <div class="ri-date"><select onchange="updateRoutineDate('m',87,this.value)"><option value="">日付</option><option value="1">1日</option><option value="2">2日</option><option value="3">3日</option><option value="4">4日</option><option value="5">5日</option><option value="6">6日</option><option value="7">7日</option><option value="8">8日</option><option value="9">9日</option><option value="10">10日</option><option value="11">11日</option><option value="12">12日</option><option value="13">13日</option><option value="14">14日</option><option value="15">15日</option><option value="16">16日</option><option value="17">17日</option><option value="18">18日</option><option value="19">19日</option><option value="20">20日</option><option value="21">21日</option><option value="22">22日</option><option value="23">23日</option><option value="24">24日</option><option value="25">25日</option><option value="26">26日</option><option value="27" selected="">27日</option><option value="28">28日</option><option value="29">29日</option><option value="30">30日</option><option value="31">31日</option></select></div>
-      <button class="ri-del" onclick="delRoutine('m',87)">×</button></div><div class="routine-item" data-rid="89"><div class="ri-handle">⠿</div>
-      <div class="ri-check" onclick="toggleRoutineDone(89)"></div>
-      <div class="ri-label">こば資金確保でんさい</div>
-      <div class="ri-date"><select onchange="updateRoutineDate('m',89,this.value)"><option value="">日付</option><option value="1">1日</option><option value="2">2日</option><option value="3">3日</option><option value="4">4日</option><option value="5">5日</option><option value="6">6日</option><option value="7">7日</option><option value="8">8日</option><option value="9">9日</option><option value="10">10日</option><option value="11">11日</option><option value="12">12日</option><option value="13">13日</option><option value="14">14日</option><option value="15">15日</option><option value="16">16日</option><option value="17">17日</option><option value="18">18日</option><option value="19">19日</option><option value="20">20日</option><option value="21">21日</option><option value="22">22日</option><option value="23">23日</option><option value="24">24日</option><option value="25">25日</option><option value="26">26日</option><option value="27">27日</option><option value="28" selected="">28日</option><option value="29">29日</option><option value="30">30日</option><option value="31">31日</option></select></div>
-      <button class="ri-del" onclick="delRoutine('m',89)">×</button></div><div class="routine-item" data-rid="130"><div class="ri-handle">⠿</div>
-      <div class="ri-check" onclick="toggleRoutineDone(130)"></div>
-      <div class="ri-label">名古屋銀行100入金</div>
-      <div class="ri-date"><select onchange="updateRoutineDate('m',130,this.value)"><option value="">日付</option><option value="1">1日</option><option value="2">2日</option><option value="3">3日</option><option value="4">4日</option><option value="5">5日</option><option value="6">6日</option><option value="7">7日</option><option value="8">8日</option><option value="9">9日</option><option value="10">10日</option><option value="11">11日</option><option value="12">12日</option><option value="13">13日</option><option value="14">14日</option><option value="15">15日</option><option value="16">16日</option><option value="17">17日</option><option value="18">18日</option><option value="19">19日</option><option value="20">20日</option><option value="21">21日</option><option value="22">22日</option><option value="23">23日</option><option value="24">24日</option><option value="25">25日</option><option value="26">26日</option><option value="27">27日</option><option value="28" selected="">28日</option><option value="29">29日</option><option value="30">30日</option><option value="31">31日</option></select></div>
-      <button class="ri-del" onclick="delRoutine('m',130)">×</button></div><div class="routine-item" data-rid="105"><div class="ri-handle">⠿</div>
-      <div class="ri-check" onclick="toggleRoutineDone(105)"></div>
-      <div class="ri-label">つくし　勤怠　利用者請求）</div>
-      <div class="ri-date"><select onchange="updateRoutineDate('m',105,this.value)"><option value="">日付</option><option value="1">1日</option><option value="2">2日</option><option value="3">3日</option><option value="4">4日</option><option value="5">5日</option><option value="6">6日</option><option value="7">7日</option><option value="8">8日</option><option value="9">9日</option><option value="10">10日</option><option value="11">11日</option><option value="12">12日</option><option value="13">13日</option><option value="14">14日</option><option value="15">15日</option><option value="16">16日</option><option value="17">17日</option><option value="18">18日</option><option value="19">19日</option><option value="20">20日</option><option value="21">21日</option><option value="22">22日</option><option value="23">23日</option><option value="24">24日</option><option value="25">25日</option><option value="26">26日</option><option value="27">27日</option><option value="28">28日</option><option value="29">29日</option><option value="30" selected="">30日</option><option value="31">31日</option></select></div>
-      <button class="ri-del" onclick="delRoutine('m',105)">×</button></div><div class="routine-item" data-rid="134"><div class="ri-handle">⠿</div>
-      <div class="ri-check" onclick="toggleRoutineDone(134)"></div>
-      <div class="ri-label">つくし　シフト設定する</div>
-      <div class="ri-date"><select onchange="updateRoutineDate('m',134,this.value)"><option value="">日付</option><option value="1">1日</option><option value="2">2日</option><option value="3">3日</option><option value="4">4日</option><option value="5">5日</option><option value="6">6日</option><option value="7">7日</option><option value="8">8日</option><option value="9">9日</option><option value="10">10日</option><option value="11">11日</option><option value="12">12日</option><option value="13">13日</option><option value="14">14日</option><option value="15">15日</option><option value="16">16日</option><option value="17">17日</option><option value="18">18日</option><option value="19">19日</option><option value="20">20日</option><option value="21">21日</option><option value="22">22日</option><option value="23">23日</option><option value="24">24日</option><option value="25">25日</option><option value="26">26日</option><option value="27">27日</option><option value="28">28日</option><option value="29">29日</option><option value="30" selected="">30日</option><option value="31">31日</option></select></div>
-      <button class="ri-del" onclick="delRoutine('m',134)">×</button></div></div>
+      <div class="routine-body" id="rm-body">
+        <div id="rm-items"></div>
         <div class="routine-add">
-          <input id="rm-input" placeholder="定例業務名…" onkeydown="if(event.key==='Enter'&amp;&amp;!event.isComposing)addRoutine('m')">
+          <input id="rm-input" placeholder="定例業務名…" onkeydown="if(event.key==='Enter'&&!event.isComposing)addRoutine('m')" />
           <button class="routine-add-btn" onclick="addRoutine('m')">追加</button>
         </div>
       </div>
@@ -574,395 +534,19 @@ header{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;alig
       <div class="leg"><div class="leg-dot" style="background:#4a3ab0"></div>両社共通</div>
       <div class="drag-hint">⠿ で象限間移動 ／ カード内でQ内並び替え</div>
     </div>
-    <div id="matrixView"><div class="matrix-outer"><div class="y-labels"><div class="y-label">重要度 高</div><div class="y-label">重要度 低</div></div><div class="matrix-main"><div class="matrix-grid"><div class="quadrant q1" id="drop1"><div class="q-label">今すぐやる（緊急×重要）</div><div class="q-tasks" id="qt1"><div class="proj-group" data-proj-id="201"><div class="pg-header"><div class="pg-drag-handle" title="並び替え">⠿</div>
-    <div class="pg-icon pi-tsukushi">つ</div>
-    <div class="pg-name">つくし　採用戦略プロジェクト</div>
-    <div class="pg-prog"><div class="pg-prog-fill" style="width:0%;background:#c0392b;"></div></div>
-    <div class="pg-pct">0%</div>
-    <div class="pg-toggle" style="font-size:10px;color:var(--text3);margin-left:4px;flex-shrink:0;cursor:pointer;">▲</div></div><div class="pg-body" style="display: flex;"><div class="task-card" data-id="208">
-    <div class="drag-handle" title="象限を移動" style="cursor: grab;">⠿</div>
-    <div class="tc-check"></div>
-    <div class="tc-body">
-      <div class="tc-title">リタリコとりあえず掲載する</div>
-      <div class="tc-badges"><span class="co-badge co-t">つくし</span></div>
-      
-    </div>
-    <button class="tc-edit-btn" title="編集">✎</button>
-    <button class="tc-trash" title="削除">🗑</button></div></div></div><div class="task-card" data-id="97">
-    <div class="drag-handle" title="象限を移動" style="cursor: grab;">⠿</div>
-    <div class="tc-check"></div>
-    <div class="tc-body">
-      <div class="tc-title">西元さん助成金申請する</div>
-      <div class="tc-badges"><span class="co-badge co-t">つくし</span></div>
-      <div class="tc-date">2026/05/13</div>
-    </div>
-    <button class="tc-edit-btn" title="編集">✎</button>
-    <button class="tc-trash" title="削除">🗑</button></div><div class="task-card" data-id="137">
-    <div class="drag-handle" title="象限を移動" style="cursor: grab;">⠿</div>
-    <div class="tc-check"></div>
-    <div class="tc-body">
-      <div class="tc-title">ワムネット入力福祉情報５月末まで</div>
-      <div class="tc-badges"><span class="co-badge co-t">つくし</span></div>
-      
-    </div>
-    <button class="tc-edit-btn" title="編集">✎</button>
-    <button class="tc-trash" title="削除">🗑</button></div><div class="task-card" data-id="171">
-    <div class="drag-handle" title="象限を移動" style="cursor: grab;">⠿</div>
-    <div class="tc-check"></div>
-    <div class="tc-body">
-      <div class="tc-title">wamnet融資申し込み</div>
-      <div class="tc-badges"><span class="co-badge co-t">つくし</span></div>
-      
-    </div>
-    <button class="tc-edit-btn" title="編集">✎</button>
-    <button class="tc-trash" title="削除">🗑</button></div><div class="task-card" data-id="211">
-    <div class="drag-handle" title="象限を移動" style="cursor: grab;">⠿</div>
-    <div class="tc-check"></div>
-    <div class="tc-body">
-      <div class="tc-title">ラインビットマックス資金移動する</div>
-      <div class="tc-badges"><span class="co-badge co-p">私用</span></div>
-      
-    </div>
-    <button class="tc-edit-btn" title="編集">✎</button>
-    <button class="tc-trash" title="削除">🗑</button></div><div class="task-card" data-id="160">
-    <div class="drag-handle" title="象限を移動" style="cursor: grab;">⠿</div>
-    <div class="tc-check"></div>
-    <div class="tc-body">
-      <div class="tc-title">中村さんのハグパス設定非表示</div>
-      <div class="tc-badges"><span class="co-badge co-t">つくし</span></div>
-      
-    </div>
-    <button class="tc-edit-btn" title="編集">✎</button>
-    <button class="tc-trash" title="削除">🗑</button></div><div class="task-card" data-id="166">
-    <div class="drag-handle" title="象限を移動" style="cursor: grab;">⠿</div>
-    <div class="tc-check"></div>
-    <div class="tc-body">
-      <div class="tc-title">岐阜大エリアの件電話　14日打ち合わせ</div>
-      <div class="tc-badges"><span class="co-badge co-t">つくし</span></div>
-      
-    </div>
-    <button class="tc-edit-btn" title="編集">✎</button>
-    <button class="tc-trash" title="削除">🗑</button></div><div class="task-card" data-id="200">
-    <div class="drag-handle" title="象限を移動" style="cursor: grab;">⠿</div>
-    <div class="tc-check"></div>
-    <div class="tc-body">
-      <div class="tc-title">サンプル施策　配達・ルール設定</div>
-      <div class="tc-badges"><span class="co-badge co-t">つくし</span></div>
-      
-    </div>
-    <button class="tc-edit-btn" title="編集">✎</button>
-    <button class="tc-trash" title="削除">🗑</button></div><div class="task-card done" data-id="176">
-    <div class="drag-handle" title="象限を移動" style="cursor: grab;">⠿</div>
-    <div class="tc-check"><svg width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3 5.5L8 1" stroke="#27ae60" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
-    <div class="tc-body">
-      <div class="tc-title">萬のお見積送信する</div>
-      <div class="tc-badges"><span class="co-badge co-k">小林食品</span></div>
-      
-    </div>
-    <button class="tc-edit-btn" title="編集">✎</button>
-    <button class="tc-trash" title="削除">🗑</button></div><div class="task-card done" data-id="180">
-    <div class="drag-handle" title="象限を移動" style="cursor: grab;">⠿</div>
-    <div class="tc-check"><svg width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3 5.5L8 1" stroke="#27ae60" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
-    <div class="tc-body">
-      <div class="tc-title">河村さん受給者更新　アップ　ファイル格納</div>
-      <div class="tc-badges"><span class="co-badge co-t">つくし</span></div>
-      
-    </div>
-    <button class="tc-edit-btn" title="編集">✎</button>
-    <button class="tc-trash" title="削除">🗑</button></div><div class="task-card done" data-id="174">
-    <div class="drag-handle" title="象限を移動" style="cursor: grab;">⠿</div>
-    <div class="tc-check"><svg width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3 5.5L8 1" stroke="#27ae60" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
-    <div class="tc-body">
-      <div class="tc-title">アミカ　油、油固め、片栗粉買う</div>
-      <div class="tc-badges"><span class="co-badge co-t">つくし</span></div>
-      
-    </div>
-    <button class="tc-edit-btn" title="編集">✎</button>
-    <button class="tc-trash" title="削除">🗑</button></div></div></div><div class="quadrant q2" id="drop2"><div class="q-label">計画してやる（重要・緊急でない）</div><div class="q-tasks" id="qt2"><div class="proj-group" data-proj-id="201"><div class="pg-header"><div class="pg-drag-handle" title="並び替え">⠿</div>
-    <div class="pg-icon pi-tsukushi">つ</div>
-    <div class="pg-name">つくし　採用戦略プロジェクト</div>
-    <div class="pg-prog"><div class="pg-prog-fill" style="width:0%;background:#c0392b;"></div></div>
-    <div class="pg-pct">0%</div>
-    <div class="pg-toggle" style="font-size:10px;color:var(--text3);margin-left:4px;flex-shrink:0;cursor:pointer;">▲</div></div><div class="pg-body" style="display: flex;"><div class="task-card" data-id="5">
-    <div class="drag-handle" title="象限を移動" style="cursor: grab;">⠿</div>
-    <div class="tc-check"></div>
-    <div class="tc-body">
-      <div class="tc-title">つくし 求人票・採用体制の見直し</div>
-      <div class="tc-badges"><span class="co-badge co-t">つくし</span></div>
-      
-    </div>
-    <button class="tc-edit-btn" title="編集">✎</button>
-    <button class="tc-trash" title="削除">🗑</button></div><div class="task-card" data-id="15">
-    <div class="drag-handle" title="象限を移動" style="cursor: grab;">⠿</div>
-    <div class="tc-check"></div>
-    <div class="tc-body">
-      <div class="tc-title">つくし 採用媒体の統一化（エンゲージ・Indeed・ハロワ）</div>
-      <div class="tc-badges"><span class="co-badge co-t">つくし</span></div>
-      
-    </div>
-    <button class="tc-edit-btn" title="編集">✎</button>
-    <button class="tc-trash" title="削除">🗑</button></div></div></div><div class="proj-group" data-proj-id="191"><div class="pg-header"><div class="pg-drag-handle" title="並び替え">⠿</div>
-    <div class="pg-icon pi-tsukushi">つ</div>
-    <div class="pg-name">支援方針プロジェクト</div>
-    <div class="pg-prog"><div class="pg-prog-fill" style="width:0%;background:#c0392b;"></div></div>
-    <div class="pg-pct">0%</div>
-    <div class="pg-toggle" style="font-size:10px;color:var(--text3);margin-left:4px;flex-shrink:0;cursor:pointer;">▲</div></div><div class="pg-body" style="display: flex;"><div class="task-card" data-id="111">
-    <div class="drag-handle" title="象限を移動" style="cursor: grab;">⠿</div>
-    <div class="tc-check"></div>
-    <div class="tc-body">
-      <div class="tc-title">つくし　Sec職員面談　step 方針言語化　要件定義　各々の役割へ</div>
-      <div class="tc-badges"><span class="co-badge co-t">つくし</span></div>
-      
-    </div>
-    <button class="tc-edit-btn" title="編集">✎</button>
-    <button class="tc-trash" title="削除">🗑</button></div><div class="task-card" data-id="110">
-    <div class="drag-handle" title="象限を移動" style="cursor: grab;">⠿</div>
-    <div class="tc-check"></div>
-    <div class="tc-body">
-      <div class="tc-title">つくし　step３職員面談</div>
-      <div class="tc-badges"><span class="co-badge co-t">つくし</span></div>
-      
-    </div>
-    <button class="tc-edit-btn" title="編集">✎</button>
-    <button class="tc-trash" title="削除">🗑</button></div></div></div><div class="proj-group" data-proj-id="181"><div class="pg-header"><div class="pg-drag-handle" title="並び替え">⠿</div>
-    <div class="pg-icon pi-kobashi">小</div>
-    <div class="pg-name">採用戦略</div>
-    <div class="pg-prog"><div class="pg-prog-fill" style="width:0%;background:#c0392b;"></div></div>
-    <div class="pg-pct">0%</div>
-    <div class="pg-toggle" style="font-size:10px;color:var(--text3);margin-left:4px;flex-shrink:0;cursor:pointer;">▼</div></div><div class="pg-body" style="display: none;"><div class="task-card" data-id="14">
-    <div class="drag-handle" title="象限を移動" style="cursor: grab;">⠿</div>
-    <div class="tc-check"></div>
-    <div class="tc-body">
-      <div class="tc-title">小林食品 採用媒体の統一化（エンゲージ・Indeed・ハロワ）</div>
-      <div class="tc-badges"><span class="co-badge co-k">小林食品</span></div>
-      
-    </div>
-    <button class="tc-edit-btn" title="編集">✎</button>
-    <button class="tc-trash" title="削除">🗑</button></div><div class="task-card" style="opacity: 1;"><div style="width:13px;flex-shrink:0;"></div>
-    <div class="tc-check" style=""></div>
-    <div class="tc-body">
-      <div class="tc-title" style="">エンゲージ</div>
-      
-    </div></div><div class="task-card" style="opacity: 1;"><div style="width:13px;flex-shrink:0;"></div>
-    <div class="tc-check" style=""></div>
-    <div class="tc-body">
-      <div class="tc-title" style="">インディード</div>
-      
-    </div></div><div class="task-card" style="opacity: 1;"><div style="width:13px;flex-shrink:0;"></div>
-    <div class="tc-check" style=""></div>
-    <div class="tc-body">
-      <div class="tc-title" style="">ハロワ</div>
-      
-    </div></div><div class="task-card" style="opacity: 1;"><div style="width:13px;flex-shrink:0;"></div>
-    <div class="tc-check" style=""></div>
-    <div class="tc-body">
-      <div class="tc-title" style="">ジョブメドレー</div>
-      
-    </div></div></div></div><div class="task-card" data-id="13">
-    <div class="drag-handle" title="象限を移動" style="cursor: grab;">⠿</div>
-    <div class="tc-check"></div>
-    <div class="tc-body">
-      <div class="tc-title">小林食品 MMV設計：自分としての進め方を整理</div>
-      <div class="tc-badges"><span class="co-badge co-k">小林食品</span></div>
-      
-    </div>
-    <button class="tc-edit-btn" title="編集">✎</button>
-    <button class="tc-trash" title="削除">🗑</button></div><div class="task-card" data-id="1">
-    <div class="drag-handle" title="象限を移動" style="cursor: grab;">⠿</div>
-    <div class="tc-check"></div>
-    <div class="tc-body">
-      <div class="tc-title">評価制度（51点モデル）社員説明・導入準備</div>
-      <div class="tc-badges"><span class="co-badge co-b">両社共通</span></div>
-      <div class="tc-date">2026/04/30</div>
-    </div>
-    <button class="tc-edit-btn" title="編集">✎</button>
-    <button class="tc-trash" title="削除">🗑</button></div><div class="task-card" data-id="102">
-    <div class="drag-handle" title="象限を移動" style="cursor: grab;">⠿</div>
-    <div class="tc-check"></div>
-    <div class="tc-body">
-      <div class="tc-title">利用者能力評価の運用</div>
-      <div class="tc-badges"><span class="co-badge co-t">つくし</span></div>
-      
-    </div>
-    <button class="tc-edit-btn" title="編集">✎</button>
-    <button class="tc-trash" title="削除">🗑</button></div><div class="proj-group" data-proj-id="189"><div class="pg-header"><div class="pg-drag-handle" title="並び替え">⠿</div>
-    <div class="pg-icon pi-kobashi">小</div>
-    <div class="pg-name">離職防止・定着プロジェクト</div>
-    <div class="pg-prog"><div class="pg-prog-fill" style="width:0%;background:#c0392b;"></div></div>
-    <div class="pg-pct">0%</div>
-    <div class="pg-toggle" style="font-size:10px;color:var(--text3);margin-left:4px;flex-shrink:0;cursor:pointer;">▼</div></div><div class="pg-body" style="display: none;"><div class="task-card" data-id="6">
-    <div class="drag-handle" title="象限を移動" style="cursor: grab;">⠿</div>
-    <div class="tc-check"></div>
-    <div class="tc-body">
-      <div class="tc-title">小林食品 離職防止・定着施策の検討</div>
-      <div class="tc-badges"><span class="co-badge co-k">小林食品</span></div>
-      
-    </div>
-    <button class="tc-edit-btn" title="編集">✎</button>
-    <button class="tc-trash" title="削除">🗑</button></div><div class="task-card" data-id="197">
-    <div class="drag-handle" title="象限を移動" style="cursor: grab;">⠿</div>
-    <div class="tc-check"></div>
-    <div class="tc-body">
-      <div class="tc-title">定着案・一般就労での支援員的役割をつけるのはどうか</div>
-      <div class="tc-badges"><span class="co-badge co-k">小林食品</span></div>
-      
-    </div>
-    <button class="tc-edit-btn" title="編集">✎</button>
-    <button class="tc-trash" title="削除">🗑</button></div></div></div></div></div><div class="quadrant q3" id="drop3"><div class="q-label">委任・効率化（緊急・重要でない）</div><div class="q-tasks" id="qt3"><div class="task-card" data-id="8">
-    <div class="drag-handle" title="象限を移動" style="cursor: grab;">⠿</div>
-    <div class="tc-check"></div>
-    <div class="tc-body">
-      <div class="tc-title">ISO整備 進捗確認・次のアクション</div>
-      <div class="tc-badges"><span class="co-badge co-k">小林食品</span></div>
-      
-    </div>
-    <button class="tc-edit-btn" title="編集">✎</button>
-    <button class="tc-trash" title="削除">🗑</button></div><div class="task-card" data-id="3">
-    <div class="drag-handle" title="象限を移動" style="cursor: grab;">⠿</div>
-    <div class="tc-check"></div>
-    <div class="tc-body">
-      <div class="tc-title">CELF移行：村田課長の次の一手確認</div>
-      <div class="tc-badges"><span class="co-badge co-k">小林食品</span></div>
-      
-    </div>
-    <button class="tc-edit-btn" title="編集">✎</button>
-    <button class="tc-trash" title="削除">🗑</button></div><div class="task-card" data-id="148">
-    <div class="drag-handle" title="象限を移動" style="cursor: grab;">⠿</div>
-    <div class="tc-check"></div>
-    <div class="tc-body">
-      <div class="tc-title">午前〜午後の余剰時間の活動を明確化・掲示</div>
-      <div class="tc-badges"><span class="co-badge co-t">つくし</span></div>
-      
-    </div>
-    <button class="tc-edit-btn" title="編集">✎</button>
-    <button class="tc-trash" title="削除">🗑</button></div><div class="task-card" data-id="119">
-    <div class="drag-handle" title="象限を移動" style="cursor: grab;">⠿</div>
-    <div class="tc-check"></div>
-    <div class="tc-body">
-      <div class="tc-title">応接の椅子買う</div>
-      <div class="tc-badges"><span class="co-badge co-b">両社共通</span></div>
-      
-    </div>
-    <button class="tc-edit-btn" title="編集">✎</button>
-    <button class="tc-trash" title="削除">🗑</button></div><div class="task-card" data-id="147">
-    <div class="drag-handle" title="象限を移動" style="cursor: grab;">⠿</div>
-    <div class="tc-check"></div>
-    <div class="tc-body">
-      <div class="tc-title">出店先候補の調査・開拓をお願いする　どう？きく</div>
-      <div class="tc-badges"><span class="co-badge co-t">つくし</span></div>
-      
-    </div>
-    <button class="tc-edit-btn" title="編集">✎</button>
-    <button class="tc-trash" title="削除">🗑</button></div><div class="task-card" data-id="151">
-    <div class="drag-handle" title="象限を移動" style="cursor: grab;">⠿</div>
-    <div class="tc-check"></div>
-    <div class="tc-body">
-      <div class="tc-title">SNS投稿（弁当ボリュームアップ告知）</div>
-      <div class="tc-badges"><span class="co-badge co-t">つくし</span></div>
-      
-    </div>
-    <button class="tc-edit-btn" title="編集">✎</button>
-    <button class="tc-trash" title="削除">🗑</button></div><div class="task-card" data-id="153">
-    <div class="drag-handle" title="象限を移動" style="cursor: grab;">⠿</div>
-    <div class="tc-check"></div>
-    <div class="tc-body">
-      <div class="tc-title">「おい弁」試験実施（各ルート2〜3個追加）</div>
-      <div class="tc-badges"><span class="co-badge co-t">つくし</span></div>
-      
-    </div>
-    <button class="tc-edit-btn" title="編集">✎</button>
-    <button class="tc-trash" title="削除">🗑</button></div><div class="task-card done" data-id="164">
-    <div class="drag-handle" title="象限を移動" style="cursor: grab;">⠿</div>
-    <div class="tc-check"><svg width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3 5.5L8 1" stroke="#27ae60" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
-    <div class="tc-body">
-      <div class="tc-title">おせちスケジュール設定する一旦入れてもらう
-ジャパ２００００　岩元２５０００</div>
-      <div class="tc-badges"><span class="co-badge co-k">小林食品</span></div>
-      
-    </div>
-    <button class="tc-edit-btn" title="編集">✎</button>
-    <button class="tc-trash" title="削除">🗑</button></div><div class="task-card done" data-id="178">
-    <div class="drag-handle" title="象限を移動" style="cursor: grab;">⠿</div>
-    <div class="tc-check"><svg width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3 5.5L8 1" stroke="#27ae60" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
-    <div class="tc-body">
-      <div class="tc-title">おせちスケジュール送信する</div>
-      <div class="tc-badges"><span class="co-badge co-k">小林食品</span></div>
-      
-    </div>
-    <button class="tc-edit-btn" title="編集">✎</button>
-    <button class="tc-trash" title="削除">🗑</button></div></div></div><div class="quadrant q4" id="drop4"><div class="q-label">未来の種（いつか重要）</div><div class="q-tasks" id="qt4"><div class="task-card" data-id="11">
-    <div class="drag-handle" title="象限を移動" style="cursor: grab;">⠿</div>
-    <div class="tc-check"></div>
-    <div class="tc-body">
-      <div class="tc-title">ライブコマース・D2C方向性の検討</div>
-      <div class="tc-badges"><span class="co-badge co-k">小林食品</span></div>
-      
-    </div>
-    <button class="tc-edit-btn" title="編集">✎</button>
-    <button class="tc-trash" title="削除">🗑</button></div><div class="task-card" data-id="117">
-    <div class="drag-handle" title="象限を移動" style="cursor: grab;">⠿</div>
-    <div class="tc-check"></div>
-    <div class="tc-body">
-      <div class="tc-title">小林篤史自身の思考ノート</div>
-      <div class="tc-badges"><span class="co-badge co-b">両社共通</span></div>
-      
-    </div>
-    <button class="tc-edit-btn" title="編集">✎</button>
-    <button class="tc-trash" title="削除">🗑</button></div><div class="task-card" data-id="2">
-    <div class="drag-handle" title="象限を移動" style="cursor: grab;">⠿</div>
-    <div class="tc-check"></div>
-    <div class="tc-body">
-      <div class="tc-title">つくし業務ファイル整備・ナンバリング確定</div>
-      <div class="tc-badges"><span class="co-badge co-t">つくし</span></div>
-      
-    </div>
-    <button class="tc-edit-btn" title="編集">✎</button>
-    <button class="tc-trash" title="削除">🗑</button></div><div class="task-card" data-id="9">
-    <div class="drag-handle" title="象限を移動" style="cursor: grab;">⠿</div>
-    <div class="tc-check"></div>
-    <div class="tc-body">
-      <div class="tc-title">51点モデル アプリ化・ゲーム世界観の構想整理</div>
-      <div class="tc-badges"><span class="co-badge co-b">両社共通</span></div>
-      
-    </div>
-    <button class="tc-edit-btn" title="編集">✎</button>
-    <button class="tc-trash" title="削除">🗑</button></div><div class="task-card" data-id="10">
-    <div class="drag-handle" title="象限を移動" style="cursor: grab;">⠿</div>
-    <div class="tc-check"></div>
-    <div class="tc-body">
-      <div class="tc-title">外部展開（ライセンス・SaaS化）の事業設計</div>
-      <div class="tc-badges"><span class="co-badge co-b">両社共通</span></div>
-      
-    </div>
-    <button class="tc-edit-btn" title="編集">✎</button>
-    <button class="tc-trash" title="削除">🗑</button></div></div></div></div><div class="axis-row"><span>緊急度 低 →</span><span>← 緊急度 高</span></div></div></div></div>
+    <div id="matrixView"></div>
     <div id="listView" style="display:none;"></div>
 
     <div class="shibu-section">
       <div class="shibu-hdr">
         <div class="shibu-title">😮‍💨 しぶしぶBOX</div>
-        <div class="shibu-badge" id="shibuCount">3件</div>
+        <div class="shibu-badge" id="shibuCount">0件</div>
         <button class="shibu-sort" onclick="toggleSort()" id="sortBtn">⬆ 期限順</button>
       </div>
-      <div class="shibu-grid" id="shibuGrid"><div class="scube">
-      <div class="sc-body"><div class="sc-title">魚満</div></div>
-      <div class="sc-dl near">今日 2026/05/12</div>
-      <div class="sc-date-edit"><input type="date" value="2026-05-12" onchange="updateShibuDl(71,this.value)"></div>
-      <div class="sc-footer"><div class="sc-check" onclick="toggleShibDone(71)"></div><button class="sc-del" onclick="delShibu(71)">削除</button></div>
-    </div><div class="scube">
-      <div class="sc-body"><div class="sc-title">持ち回り会</div></div>
-      <div class="sc-dl near">あと1日 2026/05/13</div>
-      <div class="sc-date-edit"><input type="date" value="2026-05-13" onchange="updateShibuDl(72,this.value)"></div>
-      <div class="sc-footer"><div class="sc-check" onclick="toggleShibDone(72)"></div><button class="sc-del" onclick="delShibu(72)">削除</button></div>
-    </div><div class="scube">
-      <div class="sc-body"><div class="sc-title">大谷さん３日夕方入り確定連絡</div></div>
-      <div class="sc-dl near">今日 2026/05/12</div>
-      <div class="sc-date-edit"><input type="date" value="2026-05-12" onchange="updateShibuDl(146,this.value)"></div>
-      <div class="sc-footer"><div class="sc-check" onclick="toggleShibDone(146)"></div><button class="sc-del" onclick="delShibu(146)">削除</button></div>
-    </div></div>
+      <div class="shibu-grid" id="shibuGrid"></div>
       <div class="shibu-add">
-        <input type="text" id="shibuTitle" placeholder="やりたくないけどやること…" onkeydown="if(event.key==='Enter'&amp;&amp;!event.isComposing)addShibu()">
-        <input type="date" id="shibuDl">
+        <input type="text" id="shibuTitle" placeholder="やりたくないけどやること…" onkeydown="if(event.key==='Enter'&&!event.isComposing)addShibu()" />
+        <input type="date" id="shibuDl" />
         <button class="shibu-add-btn" onclick="addShibu()">追加</button>
       </div>
     </div>
@@ -992,7 +576,7 @@ header{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;alig
     <h3 id="projModalTitle" style="font-size:11px;font-weight:500;color:var(--text2);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:14px;">新規プロジェクト</h3>
     <div style="margin-bottom:10px;">
       <div style="font-size:11px;color:var(--text2);margin-bottom:4px;">プロジェクト名</div>
-      <input id="projName" style="width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:8px 10px;font-size:13px;color:var(--text);font-family:'Noto Sans JP',sans-serif;outline:none;" placeholder="プロジェクト名…">
+      <input id="projName" style="width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:8px 10px;font-size:13px;color:var(--text);font-family:'Noto Sans JP',sans-serif;outline:none;" placeholder="プロジェクト名…" />
     </div>
     <div style="display:flex;gap:8px;margin-bottom:10px;">
       <div style="flex:1;">
@@ -1006,7 +590,7 @@ header{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;alig
       </div>
       <div style="flex:1;">
         <div style="font-size:11px;color:var(--text2);margin-bottom:4px;">期限</div>
-        <input type="date" id="projDeadline" style="width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:8px 10px;font-size:13px;color:var(--text);font-family:'Noto Sans JP',sans-serif;outline:none;">
+        <input type="date" id="projDeadline" style="width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:8px 10px;font-size:13px;color:var(--text);font-family:'Noto Sans JP',sans-serif;outline:none;" />
       </div>
     </div>
     <div style="display:flex;gap:6px;justify-content:flex-end;margin-top:14px;">
@@ -1018,11 +602,11 @@ header{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;alig
 <div id="overlay" onclick="overlayClick(event)">
   <div id="cap-box">
     <h3>Quick Capture</h3>
-    <input id="cap-input" placeholder="やること…">
+    <input id="cap-input" placeholder="やること…" />
     <div class="cap-meta">
       <select id="capQ"><option value="inbox">仮置き（あとで整理）</option><option value="1">Q1 今すぐ</option><option value="2">Q2 計画・重要</option><option value="3">Q3 委任・緊急</option><option value="4">Q4 未来の種</option></select>
       <select id="capCo"><option value="both">両社共通</option><option value="kobashi">小林食品</option><option value="tsukushi">つくし</option><option value="private">私用</option></select>
-      <input type="date" id="capDate">
+      <input type="date" id="capDate" />
     </div>
     <div class="cap-hint">Enter → 仮置き ／ ⌘+Enter → 象限に追加 ／ Esc → 閉じる</div>
     <div class="cap-acts">
@@ -1043,7 +627,7 @@ header{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;alig
     </div>
     <div class="edit-field">
       <div class="edit-label">実行日付</div>
-      <input type="date" id="editDate">
+      <input type="date" id="editDate" />
     </div>
     <div class="edit-field">
       <div class="edit-label">会社</div>
@@ -1071,7 +655,7 @@ header{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;alig
   </div>
 </div>
 
-<div class="ghost" id="ghost" style="display: none; left: 324px; top: 318px;">ラインビットマックス資金移動する</div>
+<div class="ghost" id="ghost" style="display:none;"></div>
 <button class="mobile-fab" onclick="openCapture()">＋ 追加</button>
 
 <script>
@@ -1080,9 +664,22 @@ const QLABEL={1:'今すぐ',2:'計画・重要',3:'委任・緊急',4:'未来の
 const CHK='<svg width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3 5.5L8 1" stroke="#27ae60" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const CHK_W='<svg width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3 5.5L8 1" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
-const DEF=[{"id":11,"title":"ライブコマース・D2C方向性の検討","q":4,"company":"kobashi","date":""},{"id":5,"title":"つくし 求人票・採用体制の見直し","q":2,"company":"tsukushi","date":""},{"id":13,"title":"小林食品 MMV設計：自分としての進め方を整理","q":2,"company":"kobashi","date":""},{"id":15,"title":"つくし 採用媒体の統一化（エンゲージ・Indeed・ハロワ）","q":2,"company":"tsukushi","date":""},{"id":1,"title":"評価制度（51点モデル）社員説明・導入準備","q":2,"company":"both","date":"2026-04-30"},{"id":117,"title":"小林篤史自身の思考ノート","q":4,"company":"both","date":""},{"id":102,"title":"利用者能力評価の運用","q":2,"company":"tsukushi","date":""},{"id":2,"title":"つくし業務ファイル整備・ナンバリング確定","q":4,"company":"tsukushi","date":""},{"id":9,"title":"51点モデル アプリ化・ゲーム世界観の構想整理","q":4,"company":"both","date":""},{"id":10,"title":"外部展開（ライセンス・SaaS化）の事業設計","q":4,"company":"both","date":""},{"id":111,"title":"つくし　Sec職員面談　step 方針言語化　要件定義　各々の役割へ","q":2,"company":"tsukushi","date":""},{"id":6,"title":"小林食品 離職防止・定着施策の検討","q":2,"company":"kobashi","date":""},{"id":110,"title":"つくし　step３職員面談","q":2,"company":"tsukushi","date":""},{"id":8,"title":"ISO整備 進捗確認・次のアクション","q":3,"company":"kobashi","date":""},{"id":3,"title":"CELF移行：村田課長の次の一手確認","q":3,"company":"kobashi","date":""},{"id":148,"title":"午前〜午後の余剰時間の活動を明確化・掲示","q":3,"company":"tsukushi","date":""},{"id":119,"title":"応接の椅子買う","q":3,"company":"both","date":""},{"id":208,"title":"リタリコとりあえず掲載する","q":1,"company":"tsukushi","date":""},{"id":97,"title":"西元さん助成金申請する","q":1,"company":"tsukushi","date":"2026-05-13"},{"id":137,"title":"ワムネット入力福祉情報５月末まで","q":1,"company":"tsukushi","date":""},{"id":147,"title":"出店先候補の調査・開拓をお願いする　どう？きく","q":3,"company":"tsukushi","date":""},{"id":151,"title":"SNS投稿（弁当ボリュームアップ告知）","q":3,"company":"tsukushi","date":""},{"id":153,"title":"「おい弁」試験実施（各ルート2〜3個追加）","q":3,"company":"tsukushi","date":""},{"id":171,"title":"wamnet融資申し込み","q":1,"company":"tsukushi","date":""},{"id":160,"title":"中村さんのハグパス設定非表示","q":1,"company":"tsukushi","date":""},{"id":166,"title":"岐阜大エリアの件電話　14日打ち合わせ","q":1,"company":"tsukushi","date":""},{"id":200,"title":"サンプル施策　配達・ルール設定","q":1,"company":"tsukushi","date":""},{"id":176,"title":"萬のお見積送信する","q":1,"company":"kobashi","date":""},{"id":180,"title":"河村さん受給者更新　アップ　ファイル格納","q":1,"company":"tsukushi","date":""},{"id":164,"title":"おせちスケジュール設定する一旦入れてもらう\nジャパ２００００　岩元２５０００","q":3,"company":"kobashi","date":""},{"id":178,"title":"おせちスケジュール送信する","q":3,"company":"kobashi","date":""},{"id":14,"title":"小林食品 採用媒体の統一化（エンゲージ・Indeed・ハロワ）","q":2,"company":"kobashi","date":""},{"id":197,"title":"定着案・一般就労での支援員的役割をつけるのはどうか","q":2,"company":"kobashi","date":""},{"id":174,"title":"アミカ　油、油固め、片栗粉買う","q":1,"company":"tsukushi","date":""},{"id":211,"title":"ラインビットマックス資金移動する","q":1,"company":"private","date":""}];
-const DEF_SHIBU=[{"id":71,"title":"魚満","deadline":"2026-05-12"},{"id":72,"title":"持ち回り会","deadline":"2026-05-13"},{"id":146,"title":"大谷さん３日夕方入り確定連絡","deadline":"2026-05-12"}];
-const DEF_ROUTINES={"w":[],"m":[{"id":106,"title":"つくし　勤怠　全員分ｱﾝﾃﾘへ","date":"3"},{"id":104,"title":"つくし　経理（AMEX，口座，売上）","date":"5"},{"id":169,"title":"つくしｱﾝﾃﾘ領収書送付","date":"5"},{"id":84,"title":"つくし給与振込","date":"14"},{"id":205,"title":"こば給与資金調達した","date":"16"},{"id":85,"title":"こば支払送信","date":"17"},{"id":86,"title":"こば給与計算","date":"23"},{"id":87,"title":"つくし家賃振込","date":"27"},{"id":89,"title":"こば資金確保でんさい","date":"28"},{"id":130,"title":"名古屋銀行100入金","date":"28"},{"id":105,"title":"つくし　勤怠　利用者請求）","date":"30"},{"id":134,"title":"つくし　シフト設定する","date":"30"}]};
+const DEF=[{"id":13,"title":"小林食品 MMV設計：自分としての進め方を整理","q":2,"company":"kobashi","date":""},{"id":11,"title":"ライブコマース・D2C方向性の検討","q":4,"company":"kobashi","date":""},{"id":14,"title":"小林食品 採用媒体の統一化（エンゲージ・Indeed・ハロワ）","q":2,"company":"kobashi","date":""},{"id":100,"title":"API振込","q":1,"company":"private","date":"2026-04-30"},{"id":98,"title":"プレミアム見積作成送信","q":1,"company":"kobashi","date":""},{"id":97,"title":"西元さん助成金申請する","q":1,"company":"tsukushi","date":"2026-04-30"},{"id":15,"title":"つくし 採用媒体の統一化（エンゲージ・Indeed・ハロワ）","q":2,"company":"tsukushi","date":""},{"id":1,"title":"評価制度（51点モデル）社員説明・導入準備","q":2,"company":"both","date":"2026-04-30"},{"id":6,"title":"小林食品 離職防止・定着施策の検討","q":2,"company":"kobashi","date":""},{"id":117,"title":"小林篤史自身の思考ノート","q":2,"company":"both","date":""},{"id":8,"title":"ISO整備 進捗確認・次のアクション","q":3,"company":"kobashi","date":""},{"id":2,"title":"つくし業務ファイル整備・ナンバリング確定","q":4,"company":"tsukushi","date":""},{"id":9,"title":"51点モデル アプリ化・ゲーム世界観の構想整理","q":4,"company":"both","date":""},{"id":10,"title":"外部展開（ライセンス・SaaS化）の事業設計","q":4,"company":"both","date":""},{"id":3,"title":"CELF移行：村田課長の次の一手確認","q":3,"company":"kobashi","date":""},{"id":12,"title":"つくし 支援会議の続きの日程を決めて周知","q":1,"company":"tsukushi","date":""},{"id":5,"title":"つくし 求人票・採用体制の見直し","q":1,"company":"tsukushi","date":""},{"id":74,"title":"はぐくみ4月報告","q":1,"company":"tsukushi","date":"2026-05-01"},{"id":99,"title":"岩崎さんおせちの数量と期間連絡する","q":1,"company":"kobashi","date":""},{"id":101,"title":"支援員の配置4人オペレーション＋その他業務の振り分け","q":2,"company":"tsukushi","date":""},{"id":102,"title":"利用者能力評価の運用","q":2,"company":"tsukushi","date":""},{"id":111,"title":"つくし　Sec職員面談　step 方針言語化　要件定義　各々の役割へ","q":2,"company":"tsukushi","date":""},{"id":110,"title":"つくし　step３職員面談","q":2,"company":"tsukushi","date":""},{"id":103,"title":"方針実行　sec１　池田さんと話す方針についての進めかた","q":2,"company":"tsukushi","date":""},{"id":112,"title":"つくし　step1　面談するには　キャリア要件に合わせた定義が必要","q":2,"company":"tsukushi","date":""},{"id":114,"title":"船戸さん面談","q":1,"company":"kobashi","date":""},{"id":119,"title":"応接の椅子買う","q":2,"company":"both","date":""},{"id":118,"title":"つくしの取組説明　と　今後のビジョン共有","q":2,"company":"kobashi","date":""},{"id":122,"title":"３６協定の同意書サインもらう池田さん","q":1,"company":"tsukushi","date":""}];
+
+// restore missing tasks into localStorage on load
+(function(){
+  try{
+    let t=JSON.parse(localStorage.getItem('ac_tasks')||'[]');
+    const restoreTasks=[
+      {"id":14,"title":"小林食品 採用媒体の統一化（エンゲージ・Indeed・ハロワ）","q":2,"company":"kobashi","date":""},
+    ];
+    let changed=false;
+    restoreTasks.forEach(rt=>{if(!t.find(x=>x.id===rt.id)){t.push(rt);changed=true;}});
+    if(changed)localStorage.setItem('ac_tasks',JSON.stringify(t));
+  }catch(e){}
+})();
+const DEF_SHIBU=[{"id":71,"title":"魚満","deadline":"2026-05-12"},{"id":72,"title":"持ち回り会","deadline":"2026-05-13"}];
+const DEF_ROUTINES={"w":[],"m":[{"id":106,"title":"つくし　勤怠　全員分ｱﾝﾃﾘへ","date":"3"},{"id":104,"title":"つくし　経理（AMEX，口座，売上）","date":"5"},{"id":84,"title":"つくし給与振込","date":"14"},{"id":85,"title":"こば支払送信","date":"17"},{"id":86,"title":"こば給与計算","date":"23"},{"id":87,"title":"つくし家賃振込","date":"27"},{"id":89,"title":"こば資金確保でんさい","date":"28"},{"id":105,"title":"つくし　勤怠　利用者請求）","date":"30"}]};
 
 function ld(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch{return d;}}
 function sv(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch{}}
@@ -2078,6 +1675,5 @@ render();renderInbox();renderShibu();renderRoutines();
 // init routine bodies visible
 ['rw','rm'].forEach(id=>{const b=document.getElementById(id+'-body');b.style.display='flex';b.style.flexDirection='column';});
 </script>
-
-
-</body></html>
+</body>
+</html>
