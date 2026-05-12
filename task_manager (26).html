@@ -1,0 +1,1673 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>✅ Task Manager</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✅</text></svg>">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap');
+:root{
+  --bg:#f5f0e8;--bg2:#ede8df;--bg3:#e8e2d8;--bg4:#dfd9ce;
+  --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.15);
+  --text:#2a2520;--text2:#7a7268;--text3:#a89f94;
+  --q1:#f9e8e6;--q1b:#c0392b;--q1t:#9b2a1f;
+  --q2:#e8f3e8;--q2b:#27ae60;--q2t:#1e7a42;
+  --q3:#f5f0e0;--q3b:#e67e22;--q3t:#a85a10;
+  --q4:#ece8f8;--q4b:#6c5ce7;--q4t:#4a3ab0;
+  --accent:#6c5ce7;
+  --ibg:#e6f3f8;--ibd:#0096b4;--itx:#006880;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-serif;font-size:14px;min-height:100vh;}
+
+header{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.htitle{font-size:15px;font-weight:700;}
+.hdate{font-size:11px;color:var(--text2);margin-left:auto;font-family:'DM Mono',monospace;}
+.btn-new{background:var(--accent);border:none;border-radius:8px;padding:7px 14px;font-size:12px;color:#fff;cursor:pointer;font-family:'Noto Sans JP',sans-serif;font-weight:500;display:flex;align-items:center;gap:5px;}
+.btn-new:hover{background:#7d6ff0;}
+.kbd{font-family:'DM Mono',monospace;font-size:10px;background:rgba(255,255,255,0.18);border-radius:3px;padding:1px 4px;}
+
+.toolbar{display:flex;align-items:center;gap:6px;padding:9px 18px;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.filter-btn{background:transparent;border:1px solid var(--border);border-radius:20px;padding:3px 11px;font-size:11px;color:var(--text2);cursor:pointer;font-family:'Noto Sans JP',sans-serif;transition:all 0.15s;}
+.filter-btn:hover{border-color:var(--border2);color:var(--text);}
+.filter-btn.active{background:var(--bg4);border-color:var(--border2);color:var(--text);}
+.spacer{flex:1;}
+.view-switch{display:flex;border:1px solid var(--border);border-radius:7px;overflow:hidden;}
+.view-btn{background:transparent;border:none;padding:4px 11px;font-size:11px;color:var(--text2);cursor:pointer;}
+.view-btn.active{background:var(--bg4);color:var(--text);}
+
+.body-wrap{display:flex;align-items:flex-start;}
+
+/* INBOX COL */
+.inbox-col{width:250px;min-width:200px;flex-shrink:0;background:var(--ibg);border-right:1px solid rgba(0,150,180,0.3);min-height:calc(100vh - 95px);display:flex;flex-direction:column;}
+.ic-header{display:flex;align-items:center;gap:7px;padding:11px 13px 9px;border-bottom:1px solid rgba(0,150,180,0.18);}
+.ic-dot{width:7px;height:7px;border-radius:50%;background:var(--ibd);flex-shrink:0;}
+.ic-label{font-size:12px;font-weight:500;color:var(--itx);flex:1;}
+.ic-count{font-size:10px;color:var(--ibd);font-family:'DM Mono',monospace;}
+.ic-add{padding:9px 11px;border-bottom:1px solid rgba(0,150,180,0.13);}
+.ic-input{width:100%;background:rgba(255,255,255,0.72);border:1px solid rgba(0,150,180,0.22);border-radius:7px;padding:7px 9px;font-size:12px;color:var(--text);font-family:'Noto Sans JP',sans-serif;outline:none;}
+.ic-input:focus{border-color:var(--ibd);}
+.ic-meta{display:flex;gap:4px;margin-top:5px;}
+.ic-select{flex:1;background:rgba(255,255,255,0.65);border:1px solid rgba(0,150,180,0.18);border-radius:6px;padding:5px 7px;font-size:11px;color:var(--text);font-family:'Noto Sans JP',sans-serif;outline:none;}
+.ic-save{padding:5px 10px;border-radius:6px;border:1px solid var(--ibd);background:transparent;font-size:11px;color:var(--itx);cursor:pointer;white-space:nowrap;}
+.ic-save:hover{background:rgba(0,150,180,0.1);}
+.ic-hint{font-size:10px;color:var(--itx);opacity:0.55;margin-top:4px;}
+.ic-tasks{padding:8px 10px;display:flex;flex-direction:column;gap:5px;flex:1;}
+.ic-empty{font-size:11px;color:var(--itx);opacity:0.5;padding:2px;}
+.ic-task{background:rgba(255,255,255,0.65);border:1px solid rgba(0,150,180,0.16);border-radius:8px;padding:7px 9px;}
+.ic-task-title{font-size:12px;color:var(--text);line-height:1.4;margin-bottom:5px;}
+.ic-task-acts{display:flex;gap:3px;flex-wrap:wrap;}
+.promo-btn{font-size:10px;padding:2px 7px;border-radius:4px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;}
+.promo-btn:hover{background:var(--bg3);color:var(--text);}
+.del-btn{font-size:10px;padding:2px 6px;border-radius:4px;border:1px solid rgba(192,57,43,0.22);background:transparent;color:#c0392b;cursor:pointer;margin-left:auto;}
+.del-btn:hover{background:rgba(192,57,43,0.07);}
+
+/* ROUTINE */
+.routine-section{border-top:1px solid rgba(0,150,180,0.18);background:rgba(255,255,255,0.25);}
+.routine-hdr{display:flex;align-items:center;gap:6px;padding:9px 13px 7px;cursor:pointer;user-select:none;}
+.routine-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.rw .routine-dot{background:#7d6ff0;} .rm .routine-dot{background:#27ae60;}
+.routine-hdr-label{font-size:11px;font-weight:500;flex:1;}
+.rw .routine-hdr-label{color:#4a3ab0;} .rm .routine-hdr-label{color:#1e7a42;}
+.routine-toggle{font-size:10px;color:var(--text3);}
+.routine-body{padding:0 10px 8px;display:flex;flex-direction:column;gap:4px;}
+.routine-item{display:flex;align-items:center;gap:6px;padding:5px 7px;background:rgba(255,255,255,0.62);border-radius:7px;border:1px solid var(--border);}
+.ri-check{width:14px;height:14px;min-width:14px;border-radius:3px;border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
+.routine-item.ri-done .ri-check{background:var(--q2b);border-color:var(--q2b);}
+.routine-item.ri-done .ri-label{text-decoration:line-through;opacity:0.4;}
+.ri-label{font-size:11px;color:var(--text);flex:1;line-height:1.3;}
+.ri-date select{background:transparent;border:1px solid var(--border);border-radius:4px;font-size:10px;font-family:'DM Mono',monospace;color:var(--text3);cursor:pointer;outline:none;padding:2px 4px;max-width:72px;}
+.ri-date select:focus{color:var(--text);border-color:rgba(0,150,180,0.4);}
+.ri-del{font-size:11px;color:var(--text3);cursor:pointer;padding:1px 3px;border-radius:3px;border:none;background:transparent;opacity:0;flex-shrink:0;}
+.routine-item:hover .ri-del{opacity:1;}
+.ri-del:hover{color:#c0392b;}
+.ri-handle{font-size:10px;color:var(--text3);cursor:grab;flex-shrink:0;padding:0 2px;opacity:0.5;}
+.routine-item:hover .ri-handle{opacity:1;}
+.routine-add{display:flex;gap:4px;padding:4px 0 2px;}
+.routine-add input{flex:1;min-width:0;background:rgba(255,255,255,0.6);border:1px solid var(--border);border-radius:6px;padding:5px 7px;font-size:11px;color:var(--text);font-family:'Noto Sans JP',sans-serif;outline:none;}
+.routine-add input:focus{border-color:rgba(0,150,180,0.35);}
+.routine-add-btn{padding:5px 9px;border-radius:6px;border:1px solid var(--border2);background:transparent;font-size:11px;color:var(--text2);cursor:pointer;white-space:nowrap;}
+.routine-add-btn:hover{background:var(--bg3);}
+
+/* MAIN */
+.main-col{flex:1;min-width:0;padding:13px 16px;}
+.legend{display:flex;gap:10px;margin-bottom:11px;flex-wrap:wrap;align-items:center;}
+.leg{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text3);}
+.leg-dot{width:6px;height:6px;border-radius:50%;}
+.drag-hint{font-size:10px;color:var(--text3);margin-left:auto;}
+
+/* MATRIX */
+.matrix-outer{display:flex;gap:4px;}
+.y-labels{display:flex;flex-direction:column;justify-content:space-between;width:16px;padding-bottom:18px;}
+.y-label{font-size:10px;color:var(--text3);writing-mode:vertical-rl;transform:rotate(180deg);font-family:'DM Mono',monospace;white-space:nowrap;}
+.matrix-main{flex:1;}
+.matrix-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:4px;}
+.axis-row{display:flex;justify-content:space-between;font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;}
+.quadrant{border-radius:10px;padding:9px;min-height:150px;border:1px solid transparent;transition:outline 0.12s;}
+.quadrant.drag-over-q{outline:2px dashed var(--accent);outline-offset:-2px;}
+.q1{background:var(--q1);border-color:rgba(192,57,43,0.2);}
+.q2{background:var(--q2);border-color:rgba(39,174,96,0.2);}
+.q3{background:var(--q3);border-color:rgba(230,126,34,0.2);}
+.q4{background:var(--q4);border-color:rgba(108,92,231,0.2);}
+.q-label{font-size:11px;font-weight:500;padding-bottom:5px;margin-bottom:5px;border-bottom:1px solid rgba(0,0,0,0.06);line-height:1.3;pointer-events:none;user-select:none;}
+.q1 .q-label{color:var(--q1t);}.q2 .q-label{color:var(--q2t);}.q3 .q-label{color:var(--q3t);}.q4 .q-label{color:var(--q4t);}
+.q-tasks{display:flex;flex-direction:column;gap:3px;min-height:16px;}
+.q-tasks.sort-over{background:rgba(108,92,231,0.05);border-radius:5px;}
+
+/* TASK CARD */
+.task-card{display:flex;align-items:flex-start;gap:5px;padding:5px 7px;background:rgba(255,255,255,0.72);border-radius:6px;border:1px solid var(--border);user-select:none;touch-action:none;transition:border-color 0.1s,background 0.1s;}
+.task-card:hover{background:rgba(255,255,255,0.95);border-color:var(--border2);}
+.task-card.done{opacity:0.3;}.task-card.done .tc-title{text-decoration:line-through;}
+.task-card.sort-ghost{opacity:0.35;border:1px dashed var(--accent);}
+.task-card.sort-placeholder{background:rgba(108,92,231,0.08);border:1px dashed var(--accent);min-height:32px;}
+.drag-handle{font-size:11px;color:var(--text3);margin-top:2px;flex-shrink:0;cursor:grab;padding:0 2px;}
+.drag-handle:hover{color:var(--text2);}
+.tc-check{width:13px;height:13px;min-width:13px;border-radius:3px;border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;margin-top:2px;}
+.task-card.done .tc-check{background:var(--q2b);border-color:var(--q2b);}
+.tc-body{flex:1;min-width:0;}
+.tc-title{font-size:11px;color:var(--text);line-height:1.4;word-break:break-all;}
+.tc-badges{display:flex;gap:3px;margin-top:3px;}
+.co-badge{font-size:9px;padding:1px 5px;border-radius:4px;font-weight:500;}
+.co-k{background:rgba(55,138,221,0.15);color:#1a6daa;}
+.co-t{background:rgba(99,153,34,0.15);color:#2d6b0a;}
+.co-b{background:rgba(108,92,231,0.15);color:#4a3ab0;}
+.co-p{background:rgba(220,100,130,0.15);color:#a0304a;}
+.tc-date{font-size:10px;color:var(--text3);margin-top:2px;font-family:'DM Mono',monospace;}
+.tc-edit-btn{font-size:10px;color:var(--text3);cursor:pointer;flex-shrink:0;padding:1px 3px;border-radius:3px;border:none;background:transparent;margin-top:1px;opacity:0;}
+.task-card:hover .tc-edit-btn{opacity:1;}
+.tc-edit-btn:hover{background:var(--bg3);color:var(--text2);}
+.empty-hint{font-size:10px;color:var(--text3);text-align:center;padding:10px 0;border:1px dashed var(--border);border-radius:6px;}
+
+/* LIST VIEW */
+.list-section{margin-bottom:12px;}
+.ls-hdr{display:flex;align-items:center;gap:7px;padding:5px 10px;border-radius:7px;margin-bottom:5px;}
+.ls-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.ls-label{font-size:12px;font-weight:500;flex:1;}
+.ls-count{font-size:11px;font-family:'DM Mono',monospace;}
+.ls1{background:var(--q1);}.ls1 .ls-label,.ls1 .ls-count{color:var(--q1t);}.ls1 .ls-dot{background:var(--q1t);}
+.ls2{background:var(--q2);}.ls2 .ls-label,.ls2 .ls-count{color:var(--q2t);}.ls2 .ls-dot{background:var(--q2t);}
+.ls3{background:var(--q3);}.ls3 .ls-label,.ls3 .ls-count{color:var(--q3t);}.ls3 .ls-dot{background:var(--q3t);}
+.ls4{background:var(--q4);}.ls4 .ls-label,.ls4 .ls-count{color:var(--q4t);}.ls4 .ls-dot{background:var(--q4t);}
+.list-task{display:flex;align-items:flex-start;gap:8px;padding:8px 11px;background:#fff;border:1px solid var(--border);border-radius:8px;margin-bottom:4px;}
+.lt-check{width:15px;height:15px;min-width:15px;border-radius:3px;border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;margin-top:1px;}
+.list-task.done .lt-check{background:var(--q2b);border-color:var(--q2b);}
+.list-task.done .lt-title{text-decoration:line-through;opacity:0.4;}
+.lt-body{flex:1;}
+.lt-title{font-size:13px;color:var(--text);line-height:1.4;}
+.lt-sub{font-size:11px;color:var(--text2);margin-top:2px;}
+.lt-move{display:flex;gap:4px;margin-top:5px;flex-wrap:wrap;}
+.mv-btn{font-size:10px;padding:2px 7px;border-radius:4px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;}
+.mv-btn:hover{background:var(--bg4);color:var(--text);}
+.lt-edit-btn{font-size:10px;padding:2px 7px;border-radius:4px;border:1px solid var(--border2);background:transparent;color:var(--accent);cursor:pointer;}
+.lt-edit-btn:hover{background:rgba(108,92,231,0.08);}
+
+/* SHIBU */
+.shibu-section{margin-top:16px;}
+.shibu-hdr{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.shibu-title{font-size:13px;font-weight:500;color:var(--text2);}
+.shibu-badge{font-size:10px;font-family:'DM Mono',monospace;background:var(--bg4);padding:2px 8px;border-radius:10px;color:var(--text2);}
+.shibu-sort{font-size:10px;padding:3px 10px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;margin-left:auto;}
+.shibu-sort:hover{background:var(--bg4);}
+.shibu-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:8px;}
+.scube{background:var(--bg2);border:1px solid var(--border2);border-radius:10px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 1px 3px rgba(0,0,0,0.05);}
+.scube.done{opacity:0.32;}.scube.done .sc-title{text-decoration:line-through;}
+.sc-body{padding:10px 10px 7px;}
+.sc-title{font-size:12px;color:var(--text);line-height:1.4;font-weight:500;}
+.sc-dl{font-size:10px;font-family:'DM Mono',monospace;padding:5px 10px;border-top:1px solid rgba(0,0,0,0.06);}
+.sc-dl.none{color:var(--text3);}.sc-dl.ok{color:var(--text2);}
+.sc-dl.near{background:#fff7ec;color:var(--q3t);font-weight:500;}
+.sc-dl.over{background:#fef0ee;color:var(--q1t);font-weight:500;}
+.sc-date-edit{padding:4px 8px;border-top:1px solid rgba(0,0,0,0.05);}
+.sc-date-edit input[type=date]{width:100%;background:transparent;border:1px solid var(--border);border-radius:5px;padding:3px 6px;font-size:10px;color:var(--text2);font-family:'DM Mono',monospace;outline:none;cursor:pointer;}
+.sc-date-edit input[type=date]:focus{border-color:var(--accent);color:var(--text);}
+.sc-footer{display:flex;align-items:center;padding:6px 8px;gap:5px;border-top:1px solid rgba(0,0,0,0.05);}
+.sc-check{width:16px;height:16px;min-width:16px;border-radius:3px;border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.scube.done .sc-check{background:var(--q2b);border-color:var(--q2b);}
+.sc-del{margin-left:auto;font-size:10px;padding:2px 7px;border-radius:4px;border:1px solid rgba(192,57,43,0.2);background:transparent;color:#c0392b;cursor:pointer;}
+.sc-del:hover{background:rgba(192,57,43,0.07);}
+.shibu-add{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;}
+.shibu-add input{background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:6px 10px;font-size:12px;color:var(--text);font-family:'Noto Sans JP',sans-serif;outline:none;}
+.shibu-add input:focus{border-color:var(--accent);}
+.shibu-add input[type=text]{flex:1;min-width:120px;}
+.shibu-add input[type=date]{min-width:125px;}
+.shibu-add-btn{padding:6px 14px;border-radius:7px;border:1px solid var(--border2);background:transparent;font-size:12px;color:var(--text2);cursor:pointer;}
+.shibu-add-btn:hover{background:var(--bg4);color:var(--text);}
+
+/* QUICK CAPTURE */
+#overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.28);backdrop-filter:blur(6px);z-index:1000;align-items:flex-start;justify-content:center;padding-top:90px;}
+#overlay.show{display:flex;}
+#cap-box{background:var(--bg);border:1px solid var(--border2);border-radius:14px;padding:22px;width:490px;max-width:95vw;box-shadow:0 20px 56px rgba(0,0,0,0.15);}
+#cap-box h3{font-size:11px;font-weight:500;color:var(--text2);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:11px;}
+#cap-input{width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:8px;padding:10px 12px;font-size:15px;color:var(--text);font-family:'Noto Sans JP',sans-serif;outline:none;}
+#cap-input:focus{border-color:var(--accent);}
+.cap-meta{display:flex;gap:6px;margin-top:7px;flex-wrap:wrap;}
+.cap-meta select,.cap-meta input[type=date]{background:var(--bg2);border:1px solid var(--border);border-radius:7px;padding:5px 8px;font-size:11px;color:var(--text);font-family:'Noto Sans JP',sans-serif;outline:none;cursor:pointer;}
+.cap-meta select{flex:1;min-width:90px;}
+.cap-hint{font-size:10px;color:var(--text3);margin-top:7px;}
+.cap-acts{display:flex;gap:6px;margin-top:11px;justify-content:flex-end;}
+.btn-cancel{background:transparent;border:1px solid var(--border2);border-radius:7px;padding:7px 13px;font-size:12px;color:var(--text2);cursor:pointer;}
+.btn-cancel:hover{background:var(--bg4);}
+.btn-inbox2{background:var(--ibg);border:1px solid var(--ibd);border-radius:7px;padding:7px 13px;font-size:12px;color:var(--itx);cursor:pointer;}
+.btn-inbox2:hover{background:rgba(0,150,180,0.14);}
+.btn-confirm{background:var(--accent);border:1px solid var(--accent);border-radius:7px;padding:7px 13px;font-size:12px;color:#fff;cursor:pointer;}
+.btn-confirm:hover{background:#7d6ff0;}
+
+/* EDIT MODAL */
+#editOverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.28);backdrop-filter:blur(4px);z-index:2000;align-items:flex-start;justify-content:center;padding-top:100px;}
+#editOverlay.show{display:flex;}
+#edit-box{background:var(--bg);border:1px solid var(--border2);border-radius:14px;padding:22px;width:420px;max-width:95vw;box-shadow:0 20px 56px rgba(0,0,0,0.15);}
+#edit-box h3{font-size:11px;font-weight:500;color:var(--text2);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:14px;}
+.edit-field{margin-bottom:10px;}
+.edit-label{font-size:11px;color:var(--text2);margin-bottom:4px;}
+.edit-field input,.edit-field select,.edit-field textarea{width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:8px 10px;font-size:13px;color:var(--text);font-family:'Noto Sans JP',sans-serif;outline:none;}
+.edit-field input:focus,.edit-field select:focus,.edit-field textarea:focus{border-color:var(--accent);}
+.edit-field textarea{resize:vertical;min-height:60px;}
+.edit-acts{display:flex;gap:6px;margin-top:14px;justify-content:flex-end;}
+.btn-edit-del{background:transparent;border:1px solid rgba(192,57,43,0.3);border-radius:7px;padding:7px 13px;font-size:12px;color:#c0392b;cursor:pointer;margin-right:auto;}
+.btn-edit-del:hover{background:rgba(192,57,43,0.07);}
+.btn-edit-save{background:var(--accent);border:1px solid var(--accent);border-radius:7px;padding:7px 13px;font-size:12px;color:#fff;cursor:pointer;}
+.btn-edit-save:hover{background:#7d6ff0;}
+
+.ghost{position:fixed;pointer-events:none;z-index:9999;background:var(--bg2);border:1px solid var(--accent);border-radius:7px;padding:5px 9px;font-size:11px;color:var(--text);max-width:200px;opacity:0.93;box-shadow:0 4px 14px rgba(0,0,0,0.1);}
+.btn-export{background:transparent;border:1px solid var(--border2);border-radius:8px;padding:7px 12px;font-size:12px;color:var(--text2);cursor:pointer;font-family:'Noto Sans JP',sans-serif;}
+.btn-export:hover{background:var(--bg4);color:var(--text);}
+.btn-cleardone{background:transparent;border:1px solid rgba(192,57,43,0.3);border-radius:8px;padding:7px 12px;font-size:12px;color:#c0392b;cursor:pointer;font-family:'Noto Sans JP',sans-serif;}
+.btn-cleardone:hover{background:rgba(192,57,43,0.07);}
+.tc-trash{font-size:11px;color:var(--text3);cursor:pointer;flex-shrink:0;padding:1px 3px;border-radius:3px;border:none;background:transparent;margin-top:1px;opacity:0;line-height:1;}
+.task-card:hover .tc-trash{opacity:0.6;}
+.tc-trash:hover{opacity:1!important;color:#c0392b;}
+
+/* MAIN TABS */
+.main-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--bg);}
+.main-tab{padding:10px 22px;font-size:13px;font-weight:500;cursor:pointer;border:none;background:transparent;color:var(--text2);border-bottom:2px solid transparent;font-family:'Noto Sans JP',sans-serif;transition:all 0.15s;}
+.main-tab:hover{color:var(--text);}
+.main-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+/* PROJECT */
+.proj-toolbar{display:flex;align-items:center;gap:10px;padding:12px 18px;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.proj-new-btn{background:var(--accent);border:none;border-radius:8px;padding:7px 14px;font-size:12px;color:#fff;cursor:pointer;font-family:'Noto Sans JP',sans-serif;font-weight:500;}
+.proj-new-btn:hover{background:#7d6ff0;}
+.proj-filter-group{display:flex;gap:4px;flex-wrap:wrap;}
+.proj-filter{background:transparent;border:1px solid var(--border);border-radius:20px;padding:3px 11px;font-size:11px;color:var(--text2);cursor:pointer;font-family:'Noto Sans JP',sans-serif;}
+.proj-filter:hover{border-color:var(--border2);color:var(--text);}
+.proj-filter.active{background:var(--bg4);border-color:var(--border2);color:var(--text);}
+.proj-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-bottom:14px;}
+.proj-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;transition:border-color 0.15s,box-shadow 0.15s;}
+.proj-card:hover{border-color:var(--border2);box-shadow:0 2px 8px rgba(0,0,0,0.06);}
+.proj-card-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;}
+.proj-icon{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.pi-kobashi{background:#e6f1fb;color:#185fa5;}
+.pi-tsukushi{background:#eaf3de;color:#3b6d11;}
+.pi-both{background:#eeedfe;color:#534ab7;}
+.pi-private{background:rgba(220,100,130,0.15);color:#a0304a;}
+.proj-name{font-size:13px;font-weight:500;color:var(--text);line-height:1.3;}
+.proj-meta{font-size:11px;color:var(--text2);margin-top:2px;}
+.proj-prog-bar{height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;margin-bottom:5px;}
+.proj-prog-fill{height:100%;border-radius:2px;transition:width 0.3s;}
+.proj-prog-label{display:flex;justify-content:space-between;font-size:10px;color:var(--text3);}
+.proj-add-card{background:transparent;border:1px dashed var(--border2);border-radius:12px;padding:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;min-height:100px;color:var(--text3);font-size:12px;transition:all 0.15s;}
+.proj-add-card:hover{border-color:var(--accent);color:var(--accent);}
+.proj-view-btn{border-color:rgba(108,92,231,0.3);color:var(--accent);}
+.proj-view-btn.active{background:#eeedfe;border-color:var(--accent);}
+.proj-group{border:1px solid rgba(108,92,231,0.2);border-radius:8px;overflow:hidden;margin-bottom:4px;background:rgba(108,92,231,0.03);}
+.pg-header{display:flex;align-items:center;gap:6px;padding:5px 7px;background:rgba(108,92,231,0.07);border-bottom:1px solid rgba(108,92,231,0.12);}
+.pg-icon{width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;}
+.pg-name{font-size:11px;font-weight:500;color:var(--q4t);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pg-prog{flex:0 0 50px;height:3px;background:var(--bg3);border-radius:2px;overflow:hidden;}
+.pg-prog-fill{height:100%;border-radius:2px;}
+.pg-pct{font-size:9px;color:var(--text3);font-family:'DM Mono',monospace;flex-shrink:0;}
+.pg-drag-handle{font-size:11px;color:var(--text3);cursor:grab;flex-shrink:0;padding:0 3px;opacity:0.5;}
+.pg-drag-handle:hover{opacity:1;}
+.pg-body{display:flex;flex-direction:column;gap:3px;padding:4px;}
+
+/* PROJECT DETAIL */
+.pd-wrap{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px 18px;}
+.pd-hdr{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border);}
+.pd-back{font-size:11px;color:var(--text2);cursor:pointer;padding:4px 10px;border-radius:6px;border:1px solid var(--border2);background:transparent;}
+.pd-back:hover{background:var(--bg3);}
+.pd-title{font-size:15px;font-weight:600;color:var(--text);flex:1;}
+.pd-co-badge{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:500;}
+.pd-deadline{font-size:11px;color:var(--text2);font-family:'DM Mono',monospace;}
+.pd-edit-btn{font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;}
+.pd-edit-btn:hover{background:var(--bg3);}
+.pd-del-btn{font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid rgba(192,57,43,0.2);background:transparent;color:#c0392b;cursor:pointer;}
+.pd-del-btn:hover{background:rgba(192,57,43,0.07);}
+.pd-prog{margin-bottom:14px;}
+.pd-prog-bar{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;margin:5px 0;}
+.pd-prog-fill{height:100%;border-radius:3px;}
+.pd-prog-lbl{display:flex;justify-content:space-between;font-size:11px;color:var(--text2);}
+.subtask-list{display:flex;flex-direction:column;gap:4px;margin-bottom:12px;}
+.subtask-item{display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--bg2);border-radius:8px;border:1px solid var(--border);}
+.subtask-item.done-st .st-label{text-decoration:line-through;opacity:0.45;}
+.st-chk{width:15px;height:15px;min-width:15px;border-radius:3px;border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
+.subtask-item.done-st .st-chk{background:var(--q2b);border-color:var(--q2b);}
+.st-label{font-size:12px;color:var(--text);flex:1;}
+.st-date-in{background:transparent;border:none;font-size:10px;font-family:'DM Mono',monospace;color:var(--text3);outline:none;width:95px;cursor:pointer;}
+.st-date-in:focus{color:var(--text);}
+.st-del{font-size:11px;color:var(--text3);cursor:pointer;padding:1px 4px;border-radius:3px;border:none;background:transparent;opacity:0;}
+.subtask-item:hover .st-del{opacity:1;}
+.st-del:hover{color:#c0392b;}
+.st-add-row{display:flex;gap:6px;flex-direction:row;}
+.st-add-row input{flex:1;background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:7px 10px;font-size:12px;color:var(--text);font-family:'Noto Sans JP',sans-serif;outline:none;}
+.st-add-row input:focus{border-color:var(--accent);}
+.st-add-row input[type=date]{flex:0;min-width:120px;}
+.st-add-btn{padding:7px 13px;border-radius:7px;border:1px solid var(--border2);background:transparent;font-size:12px;color:var(--text2);cursor:pointer;order:-1;}
+.st-add-btn:hover{background:var(--bg4);color:var(--text);}
+.task-to-proj{margin-top:10px;padding:10px 12px;background:var(--ibg);border:1px dashed var(--ibd);border-radius:8px;font-size:11px;color:var(--itx);}
+.ttp-label{margin-bottom:7px;font-weight:500;}
+.ttp-list{display:flex;flex-direction:column;gap:4px;max-height:140px;overflow-y:auto;}
+.ttp-item{display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:5px;cursor:pointer;}
+.ttp-item:hover{background:rgba(0,150,180,0.08);}
+.ttp-item-title{font-size:11px;color:var(--text);flex:1;}
+.ttp-add-btn{font-size:10px;padding:2px 7px;border-radius:4px;border:1px solid var(--ibd);background:transparent;color:var(--itx);cursor:pointer;white-space:nowrap;order:-1;}
+.ttp-add-btn:hover{background:rgba(0,150,180,0.1);}
+/* ── MOBILE RESPONSIVE ── */
+@media (max-width: 700px) {
+  /* header */
+  header{padding:10px 12px;gap:6px;flex-wrap:wrap;}
+  .htitle{font-size:14px;}
+  .hdate{display:none;}
+  .btn-cleardone{display:none;}
+  .btn-export{font-size:11px;padding:6px 9px;}
+  .btn-new{font-size:11px;padding:6px 10px;}
+  .kbd{display:none;}
+
+  /* tabs */
+  .main-tabs{overflow-x:auto;}
+  .main-tab{padding:8px 14px;font-size:12px;white-space:nowrap;}
+
+  /* toolbar */
+  .toolbar{padding:7px 10px;gap:4px;overflow-x:auto;flex-wrap:nowrap;}
+  .filter-btn{font-size:10px;padding:3px 9px;white-space:nowrap;flex-shrink:0;}
+  .spacer{display:none;}
+  .view-switch{flex-shrink:0;margin-left:auto;}
+  .view-btn{padding:4px 9px;font-size:10px;}
+
+  /* body layout: stack vertically */
+  .body-wrap{flex-direction:column;}
+
+  /* inbox col: horizontal strip at top */
+  .inbox-col{
+    width:100%;min-width:0;
+    border-right:none;
+    border-bottom:1px solid rgba(0,150,180,0.3);
+    min-height:unset;
+  }
+  .ic-tasks{max-height:160px;overflow-y:auto;}
+  .routine-section{display:none;} /* routines hidden on mobile, accessible via scroll */
+
+  /* main col */
+  .main-col{padding:10px 10px;}
+  .legend{gap:6px;margin-bottom:8px;}
+  .drag-hint{display:none;}
+
+  /* matrix: single column */
+  .matrix-outer{flex-direction:column;gap:6px;}
+  .y-labels{display:none;}
+  .matrix-grid{grid-template-columns:1fr;gap:6px;}
+  .quadrant{min-height:80px;padding:8px;}
+  .q-label{font-size:11px;}
+  .task-card{padding:6px 8px;}
+  .tc-title{font-size:12px;}
+  .tc-edit-btn{opacity:0.5;}
+  .tc-trash{opacity:0.5;}
+  .axis-row{display:none;}
+
+  /* list view */
+  .list-task{padding:7px 9px;}
+  .lt-title{font-size:12px;}
+
+  /* shibu grid: 1 col */
+  .shibu-grid{grid-template-columns:1fr;}
+  .shibu-add{flex-wrap:wrap;}
+  .shibu-add input[type=date]{min-width:0;flex:1;}
+
+  /* overlays */
+  #overlay{padding-top:40px;}
+  #cap-box{padding:16px;border-radius:12px;}
+  #cap-input{font-size:14px;}
+  #editOverlay{padding-top:40px;}
+  #edit-box{padding:16px;border-radius:12px;}
+  .cap-meta{flex-wrap:wrap;}
+  .cap-meta select,.cap-meta input[type=date]{flex:1;min-width:100px;}
+  .cap-acts{flex-wrap:wrap;gap:6px;}
+  .cap-acts button{flex:1;text-align:center;}
+
+  /* project section */
+  .proj-toolbar{padding:8px 10px;gap:6px;}
+  .proj-filter-group{overflow-x:auto;flex-wrap:nowrap;}
+  .proj-filter{white-space:nowrap;flex-shrink:0;}
+  #projListView{padding:10px 10px;}
+  #projDetailView{padding:10px 10px;}
+  .proj-grid{grid-template-columns:1fr 1fr;}
+  .pd-hdr{flex-wrap:wrap;gap:6px;}
+  .pd-title{font-size:13px;}
+  .st-add-row{flex-wrap:wrap;}
+  .st-add-row input[type=date]{min-width:0;flex:1;}
+
+  /* mobile bottom nav for quick actions */
+  .mobile-fab{
+    display:flex;
+    position:fixed;
+    bottom:20px;right:16px;
+    background:var(--accent);
+    color:#fff;
+    border:none;
+    border-radius:50px;
+    padding:12px 18px;
+    font-size:14px;
+    font-weight:500;
+    font-family:'Noto Sans JP',sans-serif;
+    box-shadow:0 4px 16px rgba(108,92,231,0.4);
+    cursor:pointer;
+    z-index:500;
+    align-items:center;
+    gap:6px;
+  }
+}
+@media (min-width:701px){
+  .mobile-fab{display:none;}
+  /* show routines on desktop */
+  .routine-section{display:block;}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="htitle">✅ Task Manager</div>
+  <div class="hdate" id="dateLine"></div>
+  <button class="btn-cleardone" onclick="clearDone()" title="チェック済みをまとめて削除">🗑 完了済み削除</button>
+  <button class="btn-export" onclick="exportHTML()" title="データ入りHTMLをダウンロード">⬇ エクスポート</button>
+  <button class="btn-new" onclick="openCapture()">+ 追加 <span class="kbd">⌘K</span></button>
+</header>
+
+<div class="main-tabs">
+  <button class="main-tab active" id="tabTask" onclick="switchTab('task')">📋 タスク</button>
+  <button class="main-tab" id="tabProject" onclick="switchTab('project')">📁 プロジェクト</button>
+</div>
+
+<div id="taskSection">
+<div class="toolbar">
+  <button class="filter-btn" onclick="setFilter('kobashi',this)">小林食品</button>
+  <button class="filter-btn" onclick="setFilter('tsukushi',this)">つくし</button>
+  <button class="filter-btn" onclick="setFilter('both',this)">両社共通</button>
+  <button class="filter-btn" onclick="setFilter('urgent',this)">今すぐ</button>
+  <button class="filter-btn" onclick="setFilter('private',this)">私用</button>
+  <button class="filter-btn active" onclick="setFilter('all',this)">すべて</button>
+  <button class="filter-btn proj-view-btn" id="projViewBtn" onclick="setFilter('projview',this)">📁 プロジェクト表示</button>
+  <div class="spacer"></div>
+  <div class="view-switch">
+    <button class="view-btn active" id="vMatrix" onclick="setView('matrix')">４象限</button>
+    <button class="view-btn" id="vList" onclick="setView('list')">リスト</button>
+  </div>
+</div>
+
+<div class="body-wrap">
+  <div class="inbox-col">
+    <div class="ic-header">
+      <div class="ic-dot"></div>
+      <div class="ic-label">仮置きBOX</div>
+      <div class="ic-count" id="inboxCount">0件</div>
+    </div>
+    <div class="ic-add">
+      <input class="ic-input" id="iqaInput" placeholder="思いついたことを入力…" onkeydown="if(event.key==='Enter'&&!event.isComposing)iqaAdd()" />
+      <div class="ic-meta">
+        <select class="ic-select" id="iqaCo">
+          <option value="both">両社共通</option>
+          <option value="kobashi">小林食品</option>
+          <option value="tsukushi">つくし</option>
+          <option value="private">私用</option>
+        </select>
+        <button class="ic-save" onclick="iqaAdd()">保存</button>
+      </div>
+      <div class="ic-hint">Enterで保存 → あとでQ1〜Q4に振り分け</div>
+    </div>
+    <div class="ic-tasks" id="icTasks">
+      <div class="ic-empty" id="icEmpty">思いついたらここに入れてあとで整理</div>
+    </div>
+
+    <!-- 週次定例 -->
+    <div class="routine-section rw">
+      <div class="routine-hdr" onclick="toggleRoutine('rw')">
+        <div class="routine-dot"></div>
+        <div class="routine-hdr-label">週次定例</div>
+        <div class="routine-toggle" id="rw-toggle">▲</div>
+      </div>
+      <div class="routine-body" id="rw-body">
+        <div id="rw-items"></div>
+        <div class="routine-add">
+          <input id="rw-input" placeholder="定例業務名…" onkeydown="if(event.key==='Enter'&&!event.isComposing)addRoutine('w')" />
+          <button class="routine-add-btn" onclick="addRoutine('w')">追加</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 月次定例 -->
+    <div class="routine-section rm">
+      <div class="routine-hdr" onclick="toggleRoutine('rm')">
+        <div class="routine-dot"></div>
+        <div class="routine-hdr-label">月次定例</div>
+        <div class="routine-toggle" id="rm-toggle">▲</div>
+      </div>
+      <div class="routine-body" id="rm-body">
+        <div id="rm-items"></div>
+        <div class="routine-add">
+          <input id="rm-input" placeholder="定例業務名…" onkeydown="if(event.key==='Enter'&&!event.isComposing)addRoutine('m')" />
+          <button class="routine-add-btn" onclick="addRoutine('m')">追加</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-col">
+    <div class="legend">
+      <div class="leg"><div class="leg-dot" style="background:#1a6daa"></div>小林食品</div>
+      <div class="leg"><div class="leg-dot" style="background:#2d6b0a"></div>つくし</div>
+      <div class="leg"><div class="leg-dot" style="background:#4a3ab0"></div>両社共通</div>
+      <div class="drag-hint">⠿ で象限間移動 ／ カード内でQ内並び替え</div>
+    </div>
+    <div id="matrixView"></div>
+    <div id="listView" style="display:none;"></div>
+
+    <div class="shibu-section">
+      <div class="shibu-hdr">
+        <div class="shibu-title">😮‍💨 しぶしぶBOX</div>
+        <div class="shibu-badge" id="shibuCount">0件</div>
+        <button class="shibu-sort" onclick="toggleSort()" id="sortBtn">⬆ 期限順</button>
+      </div>
+      <div class="shibu-grid" id="shibuGrid"></div>
+      <div class="shibu-add">
+        <input type="text" id="shibuTitle" placeholder="やりたくないけどやること…" onkeydown="if(event.key==='Enter'&&!event.isComposing)addShibu()" />
+        <input type="date" id="shibuDl" />
+        <button class="shibu-add-btn" onclick="addShibu()">追加</button>
+      </div>
+    </div>
+  </div>
+</div><!-- /body-wrap -->
+</div><!-- /taskSection -->
+
+<!-- PROJECT SECTION -->
+<div id="projectSection" style="display:none;">
+  <div class="proj-toolbar">
+    <button class="proj-new-btn" onclick="openNewProject()">+ 新規プロジェクト</button>
+    <div class="proj-filter-group">
+      <button class="proj-filter active" onclick="setProjFilter('all',this)">すべて</button>
+      <button class="proj-filter" onclick="setProjFilter('kobashi',this)">小林食品</button>
+      <button class="proj-filter" onclick="setProjFilter('tsukushi',this)">つくし</button>
+      <button class="proj-filter" onclick="setProjFilter('both',this)">両社共通</button>
+      <button class="proj-filter" onclick="setProjFilter('private',this)">私用</button>
+    </div>
+  </div>
+  <div id="projListView" style="padding:14px 18px;"></div>
+  <div id="projDetailView" style="display:none;padding:14px 18px;"></div>
+</div>
+
+<!-- PROJECT MODAL -->
+<div id="projOverlay" onclick="if(event.target===this)closeProjModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.28);backdrop-filter:blur(6px);z-index:3000;align-items:flex-start;justify-content:center;padding-top:90px;">
+  <div style="background:var(--bg);border:1px solid var(--border2);border-radius:14px;padding:22px;width:440px;max-width:95vw;box-shadow:0 20px 56px rgba(0,0,0,0.15);">
+    <h3 id="projModalTitle" style="font-size:11px;font-weight:500;color:var(--text2);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:14px;">新規プロジェクト</h3>
+    <div style="margin-bottom:10px;">
+      <div style="font-size:11px;color:var(--text2);margin-bottom:4px;">プロジェクト名</div>
+      <input id="projName" style="width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:8px 10px;font-size:13px;color:var(--text);font-family:'Noto Sans JP',sans-serif;outline:none;" placeholder="プロジェクト名…" />
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:10px;">
+      <div style="flex:1;">
+        <div style="font-size:11px;color:var(--text2);margin-bottom:4px;">会社</div>
+        <select id="projCo" style="width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:8px 10px;font-size:13px;color:var(--text);font-family:'Noto Sans JP',sans-serif;outline:none;">
+          <option value="both">両社共通</option>
+          <option value="kobashi">小林食品</option>
+          <option value="tsukushi">つくし</option>
+          <option value="private">私用</option>
+        </select>
+      </div>
+      <div style="flex:1;">
+        <div style="font-size:11px;color:var(--text2);margin-bottom:4px;">期限</div>
+        <input type="date" id="projDeadline" style="width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:8px 10px;font-size:13px;color:var(--text);font-family:'Noto Sans JP',sans-serif;outline:none;" />
+      </div>
+    </div>
+    <div style="display:flex;gap:6px;justify-content:flex-end;margin-top:14px;">
+      <button onclick="closeProjModal()" style="background:transparent;border:1px solid var(--border2);border-radius:7px;padding:7px 13px;font-size:12px;color:var(--text2);cursor:pointer;">キャンセル</button>
+      <button onclick="saveProjModal()" style="background:var(--accent);border:1px solid var(--accent);border-radius:7px;padding:7px 13px;font-size:12px;color:#fff;cursor:pointer;">保存</button>
+    </div>
+  </div>
+</div>
+<div id="overlay" onclick="overlayClick(event)">
+  <div id="cap-box">
+    <h3>Quick Capture</h3>
+    <input id="cap-input" placeholder="やること…" />
+    <div class="cap-meta">
+      <select id="capQ"><option value="inbox">仮置き（あとで整理）</option><option value="1">Q1 今すぐ</option><option value="2">Q2 計画・重要</option><option value="3">Q3 委任・緊急</option><option value="4">Q4 未来の種</option></select>
+      <select id="capCo"><option value="both">両社共通</option><option value="kobashi">小林食品</option><option value="tsukushi">つくし</option><option value="private">私用</option></select>
+      <input type="date" id="capDate" />
+    </div>
+    <div class="cap-hint">Enter → 仮置き ／ ⌘+Enter → 象限に追加 ／ Esc → 閉じる</div>
+    <div class="cap-acts">
+      <button class="btn-cancel" onclick="closeOverlay()">キャンセル</button>
+      <button class="btn-inbox2" onclick="captureInbox()">仮置きに入れる</button>
+      <button class="btn-confirm" onclick="captureConfirm()">象限に追加</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div id="editOverlay" onclick="editOverlayClick(event)">
+  <div id="edit-box">
+    <h3>タスクを編集</h3>
+    <div class="edit-field">
+      <div class="edit-label">タスク名</div>
+      <textarea id="editTitle" rows="2"></textarea>
+    </div>
+    <div class="edit-field">
+      <div class="edit-label">実行日付</div>
+      <input type="date" id="editDate" />
+    </div>
+    <div class="edit-field">
+      <div class="edit-label">会社</div>
+      <select id="editCo">
+        <option value="both">両社共通</option>
+        <option value="kobashi">小林食品</option>
+        <option value="tsukushi">つくし</option>
+        <option value="private">私用</option>
+      </select>
+    </div>
+    <div class="edit-field">
+      <div class="edit-label">象限</div>
+      <select id="editQ">
+        <option value="1">Q1 今すぐ（緊急×重要）</option>
+        <option value="2">Q2 計画してやる（重要）</option>
+        <option value="3">Q3 委任・効率化（緊急）</option>
+        <option value="4">Q4 未来の種</option>
+      </select>
+    </div>
+    <div class="edit-acts">
+      <button class="btn-edit-del" onclick="deleteTask()">削除</button>
+      <button class="btn-cancel" onclick="closeEdit()">キャンセル</button>
+      <button class="btn-edit-save" onclick="saveEdit()">保存</button>
+    </div>
+  </div>
+</div>
+
+<div class="ghost" id="ghost" style="display:none;"></div>
+<button class="mobile-fab" onclick="openCapture()">＋ 追加</button>
+
+<script>
+const CONAME={kobashi:'小林食品',tsukushi:'つくし',both:'両社共通',private:'私用'};
+const QLABEL={1:'今すぐ',2:'計画・重要',3:'委任・緊急',4:'未来の種'};
+const CHK='<svg width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3 5.5L8 1" stroke="#27ae60" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const CHK_W='<svg width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3 5.5L8 1" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+const DEF=[{"id":13,"title":"小林食品 MMV設計：自分としての進め方を整理","q":2,"company":"kobashi","date":""},{"id":11,"title":"ライブコマース・D2C方向性の検討","q":4,"company":"kobashi","date":""},{"id":14,"title":"小林食品 採用媒体の統一化（エンゲージ・Indeed・ハロワ）","q":2,"company":"kobashi","date":""},{"id":100,"title":"API振込","q":1,"company":"private","date":"2026-04-30"},{"id":98,"title":"プレミアム見積作成送信","q":1,"company":"kobashi","date":""},{"id":97,"title":"西元さん助成金申請する","q":1,"company":"tsukushi","date":"2026-04-30"},{"id":15,"title":"つくし 採用媒体の統一化（エンゲージ・Indeed・ハロワ）","q":2,"company":"tsukushi","date":""},{"id":1,"title":"評価制度（51点モデル）社員説明・導入準備","q":2,"company":"both","date":"2026-04-30"},{"id":6,"title":"小林食品 離職防止・定着施策の検討","q":2,"company":"kobashi","date":""},{"id":117,"title":"小林篤史自身の思考ノート","q":2,"company":"both","date":""},{"id":8,"title":"ISO整備 進捗確認・次のアクション","q":3,"company":"kobashi","date":""},{"id":2,"title":"つくし業務ファイル整備・ナンバリング確定","q":4,"company":"tsukushi","date":""},{"id":9,"title":"51点モデル アプリ化・ゲーム世界観の構想整理","q":4,"company":"both","date":""},{"id":10,"title":"外部展開（ライセンス・SaaS化）の事業設計","q":4,"company":"both","date":""},{"id":3,"title":"CELF移行：村田課長の次の一手確認","q":3,"company":"kobashi","date":""},{"id":12,"title":"つくし 支援会議の続きの日程を決めて周知","q":1,"company":"tsukushi","date":""},{"id":5,"title":"つくし 求人票・採用体制の見直し","q":1,"company":"tsukushi","date":""},{"id":74,"title":"はぐくみ4月報告","q":1,"company":"tsukushi","date":"2026-05-01"},{"id":99,"title":"岩崎さんおせちの数量と期間連絡する","q":1,"company":"kobashi","date":""},{"id":101,"title":"支援員の配置4人オペレーション＋その他業務の振り分け","q":2,"company":"tsukushi","date":""},{"id":102,"title":"利用者能力評価の運用","q":2,"company":"tsukushi","date":""},{"id":111,"title":"つくし　Sec職員面談　step 方針言語化　要件定義　各々の役割へ","q":2,"company":"tsukushi","date":""},{"id":110,"title":"つくし　step３職員面談","q":2,"company":"tsukushi","date":""},{"id":103,"title":"方針実行　sec１　池田さんと話す方針についての進めかた","q":2,"company":"tsukushi","date":""},{"id":112,"title":"つくし　step1　面談するには　キャリア要件に合わせた定義が必要","q":2,"company":"tsukushi","date":""},{"id":114,"title":"船戸さん面談","q":1,"company":"kobashi","date":""},{"id":119,"title":"応接の椅子買う","q":2,"company":"both","date":""},{"id":118,"title":"つくしの取組説明　と　今後のビジョン共有","q":2,"company":"kobashi","date":""},{"id":122,"title":"３６協定の同意書サインもらう池田さん","q":1,"company":"tsukushi","date":""}];
+
+// restore missing tasks into localStorage on load
+(function(){
+  try{
+    let t=JSON.parse(localStorage.getItem('ac_tasks')||'[]');
+    const restoreTasks=[
+      {"id":14,"title":"小林食品 採用媒体の統一化（エンゲージ・Indeed・ハロワ）","q":2,"company":"kobashi","date":""},
+    ];
+    let changed=false;
+    restoreTasks.forEach(rt=>{if(!t.find(x=>x.id===rt.id)){t.push(rt);changed=true;}});
+    if(changed)localStorage.setItem('ac_tasks',JSON.stringify(t));
+  }catch(e){}
+})();
+const DEF_SHIBU=[{"id":71,"title":"魚満","deadline":"2026-05-12"},{"id":72,"title":"持ち回り会","deadline":"2026-05-13"}];
+const DEF_ROUTINES={"w":[],"m":[{"id":106,"title":"つくし　勤怠　全員分ｱﾝﾃﾘへ","date":"3"},{"id":104,"title":"つくし　経理（AMEX，口座，売上）","date":"5"},{"id":84,"title":"つくし給与振込","date":"14"},{"id":85,"title":"こば支払送信","date":"17"},{"id":86,"title":"こば給与計算","date":"23"},{"id":87,"title":"つくし家賃振込","date":"27"},{"id":89,"title":"こば資金確保でんさい","date":"28"},{"id":105,"title":"つくし　勤怠　利用者請求）","date":"30"}]};
+
+function ld(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch{return d;}}
+function sv(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch{}}
+
+let tasks=ld('ac_tasks',DEF);
+let inbox=ld('ac_inbox',[]);
+let shibu=ld('ac_shibu',DEF_SHIBU);
+let done=new Set(ld('ac_done',[]));
+let sdone=new Set(ld('ac_sdone',[]));
+let filter='all',view='matrix',sorted=false,nid=ld('ac_nid',128);
+let editingId=null;
+let routines=(()=>{const v=localStorage.getItem('ac_routines');if(v){try{const p=JSON.parse(v);if(p&&(p.w||p.m))return p;}catch{}}return DEF_ROUTINES;})();
+
+// cross-Q drag
+let dragId=null,curOver=null;
+const ghost=document.getElementById('ghost');
+
+// Q-internal sort drag
+let sortDragId=null,sortDragQ=null,sortPlaceholder=null;
+
+function persist(){sv('ac_tasks',tasks);sv('ac_inbox',inbox);sv('ac_shibu',shibu);sv('ac_done',[...done]);sv('ac_sdone',[...sdone]);sv('ac_nid',nid);sv('ac_projects',projects);}
+
+(()=>{const d=new Date(),dy=['日','月','火','水','木','金','土'];document.getElementById('dateLine').textContent=`${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')} (${dy[d.getDay()]})`})();
+
+function setFilter(f,b){filter=f;document.querySelectorAll('.filter-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');render();}
+function setView(v){view=v;document.getElementById('vMatrix').classList.toggle('active',v==='matrix');document.getElementById('vList').classList.toggle('active',v==='list');document.getElementById('matrixView').style.display=v==='matrix'?'block':'none';document.getElementById('listView').style.display=v==='list'?'block':'none';render();}
+function toggleDone(id){
+  if(done.has(id))done.delete(id);else done.add(id);
+  const isDone=done.has(id);
+  // sync matching subtasks in projects by fromTaskId or title
+  const t=tasks.find(t=>t.id===id);
+  if(t){
+    projects.forEach(p=>{
+      p.subtasks.forEach(st=>{
+        if(st.fromTaskId===id||(st.title===t.title)){
+          st.done=isDone;
+        }
+      });
+    });
+    persistProj();
+    // move done tasks to bottom of their quadrant
+    tasks=tasks.filter(x=>x.id!==id);
+    if(isDone){
+      let lastIdx=tasks.reduce((acc,x,i)=>x.q===t.q?i:acc,-1);
+      tasks.splice(lastIdx+1,0,t);
+    } else {
+      let firstIdx=tasks.findIndex(x=>x.q===t.q);
+      if(firstIdx===-1)tasks.push(t);else tasks.splice(firstIdx,0,t);
+    }
+  }
+  persist();
+  render();
+}
+function toggleShibDone(id){if(sdone.has(id))sdone.delete(id);else sdone.add(id);persist();renderShibu();}
+function mf(t){if(filter==='all'||filter==='projview')return true;if(filter==='urgent')return t.q===1;if(filter==='private')return t.company==='private';if(filter==='kobashi')return t.company==='kobashi'||t.company==='both';if(filter==='tsukushi')return t.company==='tsukushi'||t.company==='both';if(filter==='both')return t.company==='both';return true;}
+function quickDeleteTask(id){
+  tasks=tasks.filter(t=>t.id!==id);
+  done.delete(id);
+  persist();render();
+}
+function clearDone(){
+  const ids=[...done];
+  tasks=tasks.filter(t=>!ids.includes(t.id));
+  done.clear();
+  persist();render();
+}
+function exportHTML(){
+  const src=document.documentElement.outerHTML;
+  // inject current localStorage data as defaults
+  const data={
+    tasks,inbox,shibu,
+    done:[...done],sdone:[...sdone],
+    routines,rdone:[...routineDone],nid
+  };
+  const injected=src.replace(
+    /const DEF=\[[\s\S]*?\];[\s\S]*?const DEF_SHIBU=\[[\s\S]*?\];[\s\S]*?const DEF_ROUTINES=\{[\s\S]*?\};/,
+    `const DEF=${JSON.stringify(data.tasks)};
+const DEF_SHIBU=${JSON.stringify(data.shibu)};
+const DEF_ROUTINES=${JSON.stringify(data.routines)};`
+  );
+  const blob=new Blob([injected],{type:'text/html'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  const d=new Date();
+  a.download=`task_manager_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.html`;
+  a.click();
+}
+function moveTask(id,q){const t=tasks.find(t=>t.id===id);if(t){t.q=q;persist();render();}}
+function promoteInbox(id,q){const t=inbox.find(t=>t.id===id);if(!t)return;tasks.push({id:nid++,title:t.title,q:parseInt(q),company:t.company||'both',date:''});inbox=inbox.filter(t=>t.id!==id);persist();renderInbox();render();}
+function delInbox(id){inbox=inbox.filter(t=>t.id!==id);persist();renderInbox();}
+function delShibu(id){shibu=shibu.filter(t=>t.id!==id);persist();renderShibu();}
+function updateShibuDl(id,val){const t=shibu.find(t=>t.id===id);if(t){t.deadline=val;persist();renderShibu();}}
+function iqaAdd(){const v=document.getElementById('iqaInput').value.trim(),co=document.getElementById('iqaCo').value;if(!v)return;inbox.push({id:nid++,title:v,company:co});document.getElementById('iqaInput').value='';persist();renderInbox();}
+function addShibu(){const t=document.getElementById('shibuTitle').value.trim(),dl=document.getElementById('shibuDl').value;if(!t)return;shibu.push({id:nid++,title:t,deadline:dl});document.getElementById('shibuTitle').value='';document.getElementById('shibuDl').value='';persist();renderShibu();}
+function toggleSort(){sorted=!sorted;document.getElementById('sortBtn').textContent=sorted?'⬇ 追加順に戻す':'⬆ 期限順';renderShibu();}
+
+// EDIT MODAL
+function openEdit(id){
+  const t=tasks.find(t=>t.id===id);if(!t)return;
+  editingId=id;
+  document.getElementById('editTitle').value=t.title;
+  document.getElementById('editDate').value=t.date||'';
+  document.getElementById('editCo').value=t.company;
+  document.getElementById('editQ').value=t.q;
+  document.getElementById('editOverlay').classList.add('show');
+  setTimeout(()=>document.getElementById('editTitle').focus(),50);
+}
+function closeEdit(){document.getElementById('editOverlay').classList.remove('show');editingId=null;}
+function editOverlayClick(e){if(e.target===document.getElementById('editOverlay'))closeEdit();}
+function saveEdit(){
+  if(!editingId)return;
+  const t=tasks.find(t=>t.id===editingId);if(!t)return;
+  t.title=document.getElementById('editTitle').value.trim()||t.title;
+  t.date=document.getElementById('editDate').value;
+  t.company=document.getElementById('editCo').value;
+  t.q=parseInt(document.getElementById('editQ').value);
+  persist();closeEdit();render();
+}
+function deleteTask(){
+  if(!editingId)return;
+  if(!confirm('このタスクを削除しますか？'))return;
+  tasks=tasks.filter(t=>t.id!==editingId);
+  persist();closeEdit();render();
+}
+
+// CAPTURE
+function openCapture(){document.getElementById('overlay').classList.add('show');setTimeout(()=>document.getElementById('cap-input').focus(),50);}
+function closeOverlay(){document.getElementById('overlay').classList.remove('show');document.getElementById('cap-input').value='';}
+function overlayClick(e){if(e.target===document.getElementById('overlay'))closeOverlay();}
+function captureInbox(){const v=document.getElementById('cap-input').value.trim(),co=document.getElementById('capCo').value;if(!v)return;inbox.push({id:nid++,title:v,company:co});document.getElementById('cap-input').value='';document.getElementById('overlay').classList.remove('show');persist();renderInbox();}
+function captureConfirm(){const v=document.getElementById('cap-input').value.trim(),q=document.getElementById('capQ').value,co=document.getElementById('capCo').value,dt=document.getElementById('capDate').value;if(!v)return;if(q==='inbox'){captureInbox();return;}tasks.push({id:nid++,title:v,q:parseInt(q),company:co,date:dt});document.getElementById('cap-input').value='';document.getElementById('overlay').classList.remove('show');persist();render();}
+
+document.addEventListener('keydown',e=>{
+  const editOpen=document.getElementById('editOverlay').classList.contains('show');
+  const capOpen=document.getElementById('overlay').classList.contains('show');
+  if(e.key==='Escape'){if(editOpen)closeEdit();else if(capOpen)closeOverlay();}
+  if((e.metaKey||e.ctrlKey)&&e.key==='k'&&!editOpen){e.preventDefault();openCapture();}
+  if(capOpen&&e.key==='Enter'&&!e.isComposing){if(e.metaKey||e.ctrlKey)captureConfirm();else captureInbox();}
+  if(editOpen&&(e.metaKey||e.ctrlKey)&&e.key==='Enter'){saveEdit();}
+});
+
+function dlInfo(d){
+  if(!d)return{cls:'none',txt:'期限なし'};
+  const t=new Date();t.setHours(0,0,0,0);const u=new Date(d);u.setHours(0,0,0,0);
+  const df=Math.round((u-t)/86400000),fmt=d.replace(/-/g,'/');
+  if(df<0)return{cls:'over',txt:`期限切れ ${fmt}`};
+  if(df===0)return{cls:'near',txt:`今日 ${fmt}`};
+  if(df<=3)return{cls:'near',txt:`あと${df}日 ${fmt}`};
+  return{cls:'ok',txt:fmt};
+}
+function dlSort(d){if(!d)return 99999;const t=new Date();t.setHours(0,0,0,0);const u=new Date(d);u.setHours(0,0,0,0);return Math.round((u-t)/86400000);}
+
+// ── CROSS-Q DRAG (⠿ handle) ──
+function startCrossQDrag(id,x,y,title){
+  dragId=id;ghost.textContent=title;ghost.style.display='block';
+  ghost.style.left=(x+12)+'px';ghost.style.top=(y-14)+'px';
+}
+function moveCrossQDrag(x,y){
+  if(!dragId)return;
+  ghost.style.left=(x+12)+'px';ghost.style.top=(y-14)+'px';
+  let f=null;
+  for(let i=1;i<=4;i++){const e=document.getElementById('drop'+i);if(!e)continue;const r=e.getBoundingClientRect();if(x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom){f=e;break;}}
+  if(f!==curOver){if(curOver)curOver.classList.remove('drag-over-q');curOver=f;if(curOver)curOver.classList.add('drag-over-q');}
+}
+function endCrossQDrag(x,y){
+  if(!dragId)return;
+  ghost.style.display='none';
+  let dropped=false;
+  for(let i=1;i<=4;i++){const e=document.getElementById('drop'+i);if(!e)continue;const r=e.getBoundingClientRect();if(x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom){moveTask(dragId,i);dropped=true;break;}}
+  // if not dropped on any quadrant, just re-render without change
+  if(!dropped)render();
+  if(curOver){curOver.classList.remove('drag-over-q');curOver=null;}
+  dragId=null;
+}
+
+// ── Q-INTERNAL SORT DRAG (card body) ──
+let sortDragStartX=0,sortDragStartY=0,sortDragMoved=false;
+function startSortDrag(id,q,x,y){
+  sortDragId=id;sortDragQ=q;
+  sortDragStartX=x;sortDragStartY=y;sortDragMoved=false;
+  sortPlaceholder=document.createElement('div');
+  sortPlaceholder.className='task-card sort-placeholder';
+  sortPlaceholder.dataset.placeholder='1';
+}
+function moveSortDrag(x,y){
+  if(!sortDragId)return;
+  // only activate after moving 6px (distinguish click from drag)
+  if(!sortDragMoved){
+    const dx=Math.abs(x-sortDragStartX),dy=Math.abs(y-sortDragStartY);
+    if(dx<6&&dy<6)return;
+    sortDragMoved=true;
+    const el=document.querySelector(`.task-card[data-id="${sortDragId}"]`);
+    if(el)el.classList.add('sort-ghost');
+  }
+  const container=document.getElementById('qt'+sortDragQ);
+  if(!container)return;
+  const cards=[...container.querySelectorAll('.task-card:not(.sort-ghost):not(.sort-placeholder)')];
+  let insertBefore=null;
+  for(const c of cards){
+    const r=c.getBoundingClientRect();
+    if(y<r.top+r.height/2){insertBefore=c;break;}
+  }
+  if(insertBefore){container.insertBefore(sortPlaceholder,insertBefore);}
+  else{container.appendChild(sortPlaceholder);}
+}
+function endSortDrag(){
+  if(!sortDragId)return;
+  if(sortDragMoved&&filter!=='projview'){
+    const container=document.getElementById('qt'+sortDragQ);
+    if(container&&sortPlaceholder&&container.contains(sortPlaceholder)){
+      const domIds=[];
+      [...container.children].forEach(el=>{
+        if(el.dataset&&el.dataset.placeholder)domIds.push(parseInt(sortDragId));
+        else if(el.dataset&&el.dataset.id&&!el.classList.contains('sort-ghost'))domIds.push(parseInt(el.dataset.id));
+      });
+      const map=Object.fromEntries(tasks.map(t=>[t.id,t]));
+      const newQOrder=domIds.map(id=>map[id]).filter(Boolean);
+      let qi=0;
+      tasks=tasks.map(t=>{if(t.q===sortDragQ&&mf(t))return newQOrder[qi++]||t;return t;});
+      persist();
+    }
+  }
+  const ghost2=document.querySelector(`.task-card[data-id="${sortDragId}"]`);
+  if(ghost2)ghost2.classList.remove('sort-ghost');
+  sortDragId=null;sortDragQ=null;sortDragMoved=false;
+  if(sortPlaceholder){sortPlaceholder.remove();sortPlaceholder=null;}
+  render();
+}
+
+document.addEventListener('mousemove',e=>{
+  if(dragId)moveCrossQDrag(e.clientX,e.clientY);
+  if(sortDragId)moveSortDrag(e.clientX,e.clientY);
+  if(rDragType)moveRoutineDrag(e.clientY);
+  if(pvDragType)movePvDrag(e.clientX,e.clientY);
+});
+document.addEventListener('mouseup',e=>{
+  if(dragId)endCrossQDrag(e.clientX,e.clientY);
+  if(sortDragId)endSortDrag();
+  if(rDragType)endRoutineDrag();
+  if(pvDragType)endPvDrag(e.clientX,e.clientY);
+});
+document.addEventListener('touchmove',e=>{
+  const tc=e.touches[0];
+  if(dragId)moveCrossQDrag(tc.clientX,tc.clientY);
+  if(sortDragId)moveSortDrag(tc.clientX,tc.clientY);
+  if(rDragType)moveRoutineDrag(tc.clientY);
+  if(pvDragType)movePvDrag(tc.clientX,tc.clientY);
+},{passive:true});
+document.addEventListener('touchend',e=>{
+  const tc=e.changedTouches[0];
+  if(dragId)endCrossQDrag(tc.clientX,tc.clientY);
+  if(sortDragId)endSortDrag();
+  if(rDragType)endRoutineDrag();
+  if(pvDragType)endPvDrag(tc.clientX,tc.clientY);
+});
+
+function makeCard(t){
+  const dn=done.has(t.id);
+  const d=document.createElement('div');
+  d.className='task-card'+(dn?' done':'');
+  d.dataset.id=t.id;
+  d.innerHTML=`
+    <div class="drag-handle" title="象限を移動">⠿</div>
+    <div class="tc-check">${dn?CHK:''}</div>
+    <div class="tc-body">
+      <div class="tc-title">${t.title}</div>
+      <div class="tc-badges"><span class="co-badge co-${t.company==='private'?'p':t.company[0]}">${CONAME[t.company]}</span></div>
+      ${t.date?`<div class="tc-date">${t.date.replace(/-/g,'/')}</div>`:''}
+    </div>
+    <button class="tc-edit-btn" title="編集">✎</button>
+    <button class="tc-trash" title="削除">🗑</button>`;
+
+  d.querySelector('.tc-check').addEventListener('click',e=>{e.stopPropagation();toggleDone(t.id);});
+  d.querySelector('.tc-edit-btn').addEventListener('click',e=>{e.stopPropagation();openEdit(t.id);});
+  d.querySelector('.tc-trash').addEventListener('click',e=>{e.stopPropagation();quickDeleteTask(t.id);});
+
+  // ⠿ handle → cross-Q drag (normal) or pvDrag (projview)
+  const handle=d.querySelector('.drag-handle');
+  handle.style.cursor='grab';
+  handle.addEventListener('mousedown',e=>{
+    e.preventDefault();e.stopPropagation();
+    if(filter==='projview'){
+      const qt=d.closest('[id^="qt"]');
+      const q=qt?parseInt(qt.id.replace('qt','')):(t.q||1);
+      startPvDrag('task',t.id,q,e.clientX,e.clientY,t.title);
+    } else {
+      startCrossQDrag(t.id,e.clientX,e.clientY,t.title);
+    }
+  });
+  handle.addEventListener('touchstart',e=>{
+    const tc=e.touches[0];
+    if(filter==='projview'){
+      const qt=d.closest('[id^="qt"]');
+      const q=qt?parseInt(qt.id.replace('qt','')):(t.q||1);
+      startPvDrag('task',t.id,q,tc.clientX,tc.clientY,t.title);
+    } else {
+      startCrossQDrag(t.id,tc.clientX,tc.clientY,t.title);
+    }
+  },{passive:true});
+
+  // card body → sort drag (only in non-projview mode)
+  d.addEventListener('mousedown',e=>{
+    if(e.target.closest('.drag-handle')||e.target.closest('.tc-check')||e.target.closest('.tc-edit-btn')||e.target.closest('.tc-trash'))return;
+    if(filter==='projview')return;
+    e.preventDefault();
+    startSortDrag(t.id,t.q,e.clientX,e.clientY);
+  });
+  d.addEventListener('touchstart',e=>{
+    if(e.target.closest('.drag-handle')||e.target.closest('.tc-check')||e.target.closest('.tc-edit-btn')||e.target.closest('.tc-trash'))return;
+    if(filter==='projview')return;
+    const tc=e.touches[0];startSortDrag(t.id,t.q,tc.clientX,tc.clientY);
+  },{passive:true});
+
+  return d;
+}
+
+function makeSubtaskCard(st,projId){
+  // virtual card for subtasks that don't exist in tasks[]
+  const dn=st.done;
+  const d=document.createElement('div');
+  d.className='task-card'+(dn?' done':'');
+  d.style.opacity=dn?'0.35':'1';
+  d.innerHTML=`<div style="width:13px;flex-shrink:0;"></div>
+    <div class="tc-check" style="${dn?'background:var(--q2b);border-color:var(--q2b);':''}">${dn?CHK:''}</div>
+    <div class="tc-body">
+      <div class="tc-title" style="${dn?'text-decoration:line-through;':''}">${st.title}</div>
+      ${st.date?`<div class="tc-date">${st.date.replace(/-/g,'/')}</div>`:''}
+    </div>`;
+  d.querySelector('.tc-check').addEventListener('click',e=>{e.stopPropagation();toggleSubtask(projId,st.id);renderMatrix();});
+  return d;
+}
+
+// ── PROJVIEW DRAG ──
+let pvDragType=null; // 'group' or 'task'
+let pvDragId=null;   // projId or taskId
+let pvDragQ=null;
+let pvPlaceholder=null;
+let pvDragMoved=false;
+let pvDragStartX=0,pvDragStartY=0;
+
+// projview order: {q: ['p:projId','t:taskId', ...]}
+function getPvOrder(q){
+  try{const v=sessionStorage.getItem('pvo_q'+q);return v?JSON.parse(v):null;}catch{return null;}
+}
+function savePvOrder(q,order){sessionStorage.setItem('pvo_q'+q,JSON.stringify(order));}
+function clearPvOrder(){for(let i=1;i<=4;i++)sessionStorage.removeItem('pvo_q'+i);}
+
+function startPvDrag(type,id,q,x,y,title){
+  pvDragType=type;pvDragId=id;pvDragQ=q;
+  pvDragMoved=false;pvDragStartX=x;pvDragStartY=y;
+  ghost.textContent=title;ghost.style.display='block';
+  ghost.style.left=(x+12)+'px';ghost.style.top=(y-14)+'px';
+  pvPlaceholder=document.createElement('div');
+  pvPlaceholder.className='task-card sort-placeholder';
+  pvPlaceholder.dataset.pvph='1';
+  pvPlaceholder.style.minHeight='32px';
+}
+function movePvDrag(x,y){
+  if(!pvDragType)return;
+  ghost.style.left=(x+12)+'px';ghost.style.top=(y-14)+'px';
+  if(!pvDragMoved){
+    if(Math.abs(x-pvDragStartX)<6&&Math.abs(y-pvDragStartY)<6)return;
+    pvDragMoved=true;
+    const src=pvDragType==='group'
+      ?document.querySelector(`.proj-group[data-proj-id="${pvDragId}"]`)
+      :document.querySelector(`.task-card[data-id="${pvDragId}"]`);
+    if(src)src.style.opacity='0.35';
+  }
+  // find target quadrant
+  let targetQ=null;
+  for(let i=1;i<=4;i++){const e=document.getElementById('drop'+i);if(!e)continue;const r=e.getBoundingClientRect();if(x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom){targetQ=i;break;}}
+  if(!targetQ)return;
+  const container=document.getElementById('qt'+targetQ);
+  if(!container)return;
+  // only consider direct children of the qt container (not children inside proj-group bodies)
+  const children=[...container.children].filter(el=>
+    !el.dataset.pvph &&
+    !el.classList.contains('sort-ghost') &&
+    el!==pvPlaceholder
+  );
+  let insertBefore=null;
+  for(const c of children){
+    const r=c.getBoundingClientRect();
+    if(y<r.top+r.height/2){insertBefore=c;break;}
+  }
+  if(insertBefore)container.insertBefore(pvPlaceholder,insertBefore);
+  else container.appendChild(pvPlaceholder);
+}
+function endPvDrag(x,y){
+  if(!pvDragType)return;
+  ghost.style.display='none';
+  const src=pvDragType==='group'
+    ?document.querySelector(`.proj-group[data-proj-id="${pvDragId}"]`)
+    :document.querySelector(`.task-card[data-id="${pvDragId}"]`);
+  if(src)src.style.opacity='';
+  if(pvDragMoved&&pvPlaceholder&&pvPlaceholder.parentElement){
+    const container=pvPlaceholder.parentElement;
+    const qMatch=container.id.match(/qt(\d)/);
+    if(qMatch){
+      const newQ=parseInt(qMatch[1]);
+      const newOrder=[];
+      [...container.children].forEach(el=>{
+        if(el.dataset.pvph){
+          newOrder.push(pvDragType==='group'?'p:'+pvDragId:'t:'+pvDragId);
+        } else if(el.classList.contains('proj-group')&&el.dataset.projId){
+          if(!('p:'+el.dataset.projId===('p:'+pvDragId)&&pvDragType==='group'))
+            newOrder.push('p:'+el.dataset.projId);
+        } else if(el.dataset.id){
+          if(!(el.dataset.id===String(pvDragId)&&pvDragType==='task'))
+            newOrder.push('t:'+el.dataset.id);
+        }
+      });
+      savePvOrder(newQ,newOrder);
+      // update task.q if moved to different Q
+      if(pvDragType==='task'){
+        const t=tasks.find(t=>t.id===parseInt(pvDragId));
+        if(t&&t.q!==newQ){t.q=newQ;persist();}
+      }
+    }
+  }
+  pvDragType=null;pvDragId=null;pvDragMoved=false;
+  if(pvPlaceholder){pvPlaceholder.remove();pvPlaceholder=null;}
+  render();
+}
+
+function makeProjectGroup(projId,projName,projCompany,taskList,stList){
+  const wrapper=document.createElement('div');
+  wrapper.className='proj-group';
+  wrapper.dataset.projId=projId;
+  const co=projCompany;
+  const icon={kobashi:'小',tsukushi:'つ',both:'共',private:'私'}[co]||'共';
+  const iconCls={kobashi:'pi-kobashi',tsukushi:'pi-tsukushi',both:'pi-both',private:'pi-private'}[co]||'pi-both';
+  const totalItems=taskList.length+stList.length;
+  const doneItems=taskList.filter(t=>done.has(t.id)).length+stList.filter(s=>s.done).length;
+  const pct=totalItems?Math.round(doneItems/totalItems*100):0;
+  const fillColor=pct>=70?'#27ae60':pct>=30?'#e67e22':'#c0392b';
+  const colKey='pg_collapsed_'+projId;
+  let collapsed=sessionStorage.getItem(colKey)==='1';
+
+  const hdr=document.createElement('div');
+  hdr.className='pg-header';
+  hdr.innerHTML=`<div class="pg-drag-handle" title="並び替え">⠿</div>
+    <div class="pg-icon ${iconCls}">${icon}</div>
+    <div class="pg-name">${projName}</div>
+    <div class="pg-prog"><div class="pg-prog-fill" style="width:${pct}%;background:${fillColor};"></div></div>
+    <div class="pg-pct">${pct}%</div>
+    <div class="pg-toggle" style="font-size:10px;color:var(--text3);margin-left:4px;flex-shrink:0;cursor:pointer;">${collapsed?'▼':'▲'}</div>`;
+
+  const body=document.createElement('div');
+  body.className='pg-body';
+  body.style.display=collapsed?'none':'flex';
+
+  // toggle on ▲▼ click only
+  hdr.querySelector('.pg-toggle').addEventListener('click',e=>{
+    e.stopPropagation();
+    collapsed=!collapsed;
+    sessionStorage.setItem(colKey,collapsed?'1':'0');
+    body.style.display=collapsed?'none':'flex';
+    hdr.querySelector('.pg-toggle').textContent=collapsed?'▼':'▲';
+  });
+
+  // group drag on ⠿ handle
+  const pgHandle=hdr.querySelector('.pg-drag-handle');
+  pgHandle.addEventListener('mousedown',e=>{
+    e.preventDefault();e.stopPropagation();
+    // find which Q this group is in
+    const qt=wrapper.closest('[id^="qt"]');
+    const q=qt?parseInt(qt.id.replace('qt','')):(pvDragQ||1);
+    startPvDrag('group',projId,q,e.clientX,e.clientY,projName);
+  });
+  pgHandle.addEventListener('touchstart',e=>{
+    const tc=e.touches[0];
+    const qt=wrapper.closest('[id^="qt"]');
+    const q=qt?parseInt(qt.id.replace('qt','')):(pvDragQ||1);
+    startPvDrag('group',projId,q,tc.clientX,tc.clientY,projName);
+  },{passive:true});
+
+  wrapper.appendChild(hdr);
+  taskList.forEach(t=>body.appendChild(makeCard(t)));
+  stList.forEach(st=>body.appendChild(makeSubtaskCard(st,projId)));
+  wrapper.appendChild(body);
+  return wrapper;
+}
+
+function renderMatrix(){
+  const mv=document.getElementById('matrixView');
+  mv.innerHTML=`<div class="matrix-outer"><div class="y-labels"><div class="y-label">重要度 高</div><div class="y-label">重要度 低</div></div><div class="matrix-main"><div class="matrix-grid"><div class="quadrant q1" id="drop1"><div class="q-label">今すぐやる（緊急×重要）</div><div class="q-tasks" id="qt1"></div></div><div class="quadrant q2" id="drop2"><div class="q-label">計画してやる（重要・緊急でない）</div><div class="q-tasks" id="qt2"></div></div><div class="quadrant q3" id="drop3"><div class="q-label">委任・効率化（緊急・重要でない）</div><div class="q-tasks" id="qt3"></div></div><div class="quadrant q4" id="drop4"><div class="q-label">未来の種（いつか重要）</div><div class="q-tasks" id="qt4"></div></div></div><div class="axis-row"><span>緊急度 低 →</span><span>← 緊急度 高</span></div></div></div>`;
+
+  if(filter==='projview'){
+    const taskProjMap={};
+    projects.forEach(p=>{p.subtasks.forEach(st=>{if(st.fromTaskId)taskProjMap[st.fromTaskId]={pid:p.id,name:p.name,company:p.company};});});
+    for(let i=1;i<=4;i++){
+      const el=document.getElementById('qt'+i);
+      const ft=tasks.filter(t=>t.q===i&&mf(t));
+      const projSubtaskGroups={};
+      projects.forEach(p=>{p.subtasks.forEach(st=>{if(!st.fromTaskId&&i===2){if(!projSubtaskGroups[p.id])projSubtaskGroups[p.id]={name:p.name,company:p.company,tasks:[],stOnly:[]};projSubtaskGroups[p.id].stOnly.push(st);}});});
+      const grouped={};const standalone=[];
+      ft.forEach(t=>{const pm=taskProjMap[t.id];if(pm){if(!grouped[pm.pid])grouped[pm.pid]={name:pm.name,company:pm.company,tasks:[],stOnly:[]};grouped[pm.pid].tasks.push(t);}else{standalone.push(t);}});
+      Object.entries(projSubtaskGroups).forEach(([pid,g])=>{if(!grouped[pid])grouped[pid]={name:g.name,company:g.company,tasks:[],stOnly:[]};grouped[pid].stOnly.push(...g.stOnly);});
+      if(!ft.length&&!Object.keys(grouped).length){const h=document.createElement('div');h.className='empty-hint';h.textContent='ここにドロップ';el.appendChild(h);continue;}
+      // apply saved order
+      const savedOrder=getPvOrder(i);
+      const allKeys=[...Object.keys(grouped).map(pid=>'p:'+pid),...standalone.map(t=>'t:'+t.id)];
+      let orderedKeys;
+      if(savedOrder){
+        const known=new Set(savedOrder);
+        orderedKeys=[...savedOrder.filter(k=>{
+          if(k.startsWith('p:'))return!!grouped[parseInt(k.slice(2))];
+          if(k.startsWith('t:'))return standalone.some(t=>t.id===parseInt(k.slice(2)));
+          return false;
+        })];
+        allKeys.forEach(k=>{if(!known.has(k))orderedKeys.push(k);});
+      } else { orderedKeys=allKeys; }
+      let hasContent=false;
+      orderedKeys.forEach(key=>{
+        if(key.startsWith('p:')){
+          const pid=parseInt(key.slice(2));const g=grouped[pid];
+          if(g&&(g.tasks.length||g.stOnly.length)){el.appendChild(makeProjectGroup(pid,g.name,g.company,g.tasks,g.stOnly));hasContent=true;}
+        } else if(key.startsWith('t:')){
+          const tid=parseInt(key.slice(2));const t=standalone.find(t=>t.id===tid);
+          if(t){el.appendChild(makeCard(t));hasContent=true;}
+        }
+      });
+      if(!hasContent){const h=document.createElement('div');h.className='empty-hint';h.textContent='ここにドロップ';el.appendChild(h);}
+    }
+  } else {
+    for(let i=1;i<=4;i++){
+      const el=document.getElementById('qt'+i);
+      const ft=tasks.filter(t=>t.q===i&&mf(t));
+      if(!ft.length){const h=document.createElement('div');h.className='empty-hint';h.textContent='ここにドロップ';el.appendChild(h);continue;}
+      ft.forEach(t=>el.appendChild(makeCard(t)));
+    }
+  }
+}
+
+function renderList(){
+  const lv=document.getElementById('listView');
+  // 2-col mode: kobashi | tsukushi, others full-width below
+  const companies=[
+    {key:'kobashi',label:'小林食品',color:'#1a6daa',bg:'rgba(55,138,221,0.07)'},
+    {key:'tsukushi',label:'つくし',color:'#2d6b0a',bg:'rgba(99,153,34,0.07)'},
+  ];
+
+  // check if filter is all/both → show 2col
+  const show2col=filter==='all'||filter==='both';
+
+  if(show2col){
+    let html=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">`;
+    companies.forEach(co=>{
+      html+=`<div style="background:${co.bg};border-radius:10px;padding:8px 10px;">
+        <div style="font-size:12px;font-weight:500;color:${co.color};margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid rgba(0,0,0,0.07);">${co.label}</div>`;
+      for(let i=1;i<=4;i++){
+        const ft=tasks.filter(t=>t.q===i&&(t.company===co.key||t.company==='both'));
+        if(!ft.length)continue;
+        const oth=[1,2,3,4].filter(x=>x!==i);
+        html+=`<div style="font-size:10px;font-weight:500;color:${co.color};opacity:0.7;margin:6px 0 3px;">Q${i}：${QLABEL[i]}</div>`;
+        ft.forEach(t=>{
+          const dn=done.has(t.id);
+          html+=`<div class="list-task${dn?' done':''}" style="margin-bottom:3px;">
+            <div class="lt-check" onclick="toggleDone(${t.id})">${dn?CHK:''}</div>
+            <div class="lt-body">
+              <div class="lt-title" style="font-size:12px;">${t.title}</div>
+              ${t.date?`<div class="lt-sub">${t.date.replace(/-/g,'/')}</div>`:''}
+              <div class="lt-move">
+                ${oth.map(x=>`<button class="mv-btn" onclick="moveTask(${t.id},${x})">→ Q${x}</button>`).join('')}
+                <button class="lt-edit-btn" onclick="openEdit(${t.id})">✎</button>
+              </div>
+            </div>
+          </div>`;
+        });
+      }
+      html+='</div>';
+    });
+    html+='</div>';
+
+    // both/private/urgent below full-width
+    const extraKeys=filter==='all'?['both','private']:[];
+    extraKeys.forEach(coKey=>{
+      const coLabel=CONAME[coKey];
+      const coColor=coKey==='both'?'#4a3ab0':'#a0304a';
+      const coBg=coKey==='both'?'rgba(108,92,231,0.07)':'rgba(220,100,130,0.07)';
+      for(let i=1;i<=4;i++){
+        const ft=tasks.filter(t=>t.q===i&&t.company===coKey);
+        if(!ft.length)continue;
+        if(!html.includes(`data-fullsec-${coKey}`)){
+          html+=`<div style="background:${coBg};border-radius:10px;padding:8px 10px;margin-bottom:10px;" data-fullsec-${coKey}>
+            <div style="font-size:12px;font-weight:500;color:${coColor};margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid rgba(0,0,0,0.07);">${coLabel}</div>`;
+        }
+        const oth=[1,2,3,4].filter(x=>x!==i);
+        html+=`<div style="font-size:10px;font-weight:500;color:${coColor};opacity:0.7;margin:6px 0 3px;">Q${i}：${QLABEL[i]}</div>`;
+        ft.forEach(t=>{
+          const dn=done.has(t.id);
+          html+=`<div class="list-task${dn?' done':''}" style="margin-bottom:3px;">
+            <div class="lt-check" onclick="toggleDone(${t.id})">${dn?CHK:''}</div>
+            <div class="lt-body">
+              <div class="lt-title" style="font-size:12px;">${t.title}</div>
+              ${t.date?`<div class="lt-sub">${t.date.replace(/-/g,'/')}</div>`:''}
+              <div class="lt-move">
+                ${oth.map(x=>`<button class="mv-btn" onclick="moveTask(${t.id},${x})">→ Q${x}</button>`).join('')}
+                <button class="lt-edit-btn" onclick="openEdit(${t.id})">✎</button>
+              </div>
+            </div>
+          </div>`;
+        });
+      }
+    });
+    // close open extra sections (simple approach: just close all divs)
+    lv.innerHTML=html;
+    return;
+  }
+
+  // single filter mode: standard list
+  let html='';
+  for(let i=1;i<=4;i++){
+    const ft=tasks.filter(t=>t.q===i&&mf(t));if(!ft.length)continue;
+    const oth=[1,2,3,4].filter(x=>x!==i);
+    html+=`<div class="list-section"><div class="ls-hdr ls${i}"><div class="ls-dot"></div><div class="ls-label">Q${i}：${QLABEL[i]}</div><div class="ls-count">${ft.length}</div></div>`;
+    ft.forEach(t=>{
+      const dn=done.has(t.id);
+      html+=`<div class="list-task${dn?' done':''}">
+        <div class="lt-check" onclick="toggleDone(${t.id})">${dn?CHK:''}</div>
+        <div class="lt-body">
+          <div class="lt-title">${t.title}</div>
+          <div class="lt-sub">${CONAME[t.company]}${t.date?' / '+t.date.replace(/-/g,'/'):''}</div>
+          <div class="lt-move">
+            ${oth.map(x=>`<button class="mv-btn" onclick="moveTask(${t.id},${x})">→ Q${x}</button>`).join('')}
+            <button class="lt-edit-btn" onclick="openEdit(${t.id})">✎ 編集</button>
+          </div>
+        </div>
+      </div>`;
+    });
+    html+='</div>';
+  }
+  lv.innerHTML=html||'<div style="font-size:13px;color:var(--text2);padding:12px 0;">タスクなし</div>';
+}
+
+function renderInbox(){
+  const wrap=document.getElementById('icTasks');
+  document.getElementById('inboxCount').textContent=inbox.length+'件';
+  [...wrap.querySelectorAll('.ic-task')].forEach(n=>n.remove());
+  const empty=document.getElementById('icEmpty');
+  if(!inbox.length){empty.style.display='';return;}
+  empty.style.display='none';
+  inbox.forEach(t=>{
+    const d=document.createElement('div');d.className='ic-task';
+    d.innerHTML=`<div class="ic-task-title">${t.title}</div><div class="ic-task-acts"><button class="promo-btn" onclick="promoteInbox(${t.id},1)">Q1</button><button class="promo-btn" onclick="promoteInbox(${t.id},2)">Q2</button><button class="promo-btn" onclick="promoteInbox(${t.id},3)">Q3</button><button class="promo-btn" onclick="promoteInbox(${t.id},4)">Q4</button><button class="del-btn" onclick="delInbox(${t.id})">×</button></div>`;
+    wrap.appendChild(d);
+  });
+}
+
+function renderShibu(){
+  const g=document.getElementById('shibuGrid');
+  document.getElementById('shibuCount').textContent=shibu.filter(t=>!sdone.has(t.id)).length+'件';
+  let list=[...shibu];
+  if(sorted)list.sort((a,b)=>dlSort(a.deadline)-dlSort(b.deadline));
+  if(!list.length){g.innerHTML='<div style="font-size:12px;color:var(--text3);grid-column:1/-1;padding:4px 0 8px;">まだありません</div>';return;}
+  g.innerHTML=list.map(t=>{
+    const dn=sdone.has(t.id);const di=dlInfo(t.deadline);
+    return`<div class="scube${dn?' done':''}">
+      <div class="sc-body"><div class="sc-title">${t.title}</div></div>
+      <div class="sc-dl ${di.cls}">${di.txt}</div>
+      <div class="sc-date-edit"><input type="date" value="${t.deadline||''}" onchange="updateShibuDl(${t.id},this.value)" /></div>
+      <div class="sc-footer"><div class="sc-check" onclick="toggleShibDone(${t.id})">${dn?CHK_W:''}</div><button class="sc-del" onclick="delShibu(${t.id})">削除</button></div>
+    </div>`;
+  }).join('');
+}
+
+// ROUTINE
+let routineDone=new Set(ld('ac_rdone',[]));
+const CHK_R='<svg width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3 5.5L8 1" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+let rDragType=null,rDragId=null,rPlaceholder=null;
+
+function toggleRoutine(id){
+  const body=document.getElementById(id+'-body');
+  const tog=document.getElementById(id+'-toggle');
+  const open=body.style.display!=='none';
+  body.style.display=open?'none':'flex';
+  body.style.flexDirection='column';
+  tog.textContent=open?'▼':'▲';
+}
+function addRoutine(type){
+  const input=document.getElementById('r'+type+'-input');
+  const title=input.value.trim();
+  if(!title)return;
+  routines[type].push({id:nid++,title,date:''});
+  input.value='';
+  sv('ac_routines',routines);
+  renderRoutines();
+}
+function delRoutine(type,id){
+  routines[type]=routines[type].filter(r=>r.id!==id);
+  routineDone.delete(id);
+  sv('ac_routines',routines);sv('ac_rdone',[...routineDone]);
+  renderRoutines();
+}
+function toggleRoutineDone(id){
+  if(routineDone.has(id))routineDone.delete(id);else routineDone.add(id);
+  sv('ac_rdone',[...routineDone]);
+  renderRoutines();
+}
+function updateRoutineDate(type,id,val){
+  const r=routines[type].find(r=>r.id===id);
+  if(r){r.date=val;sv('ac_routines',routines);}
+}
+
+function startRoutineDrag(type,id,el){
+  rDragType=type;rDragId=id;
+  el.classList.add('sort-ghost');
+  rPlaceholder=document.createElement('div');
+  rPlaceholder.className='task-card sort-placeholder';
+  rPlaceholder.style.minHeight='30px';
+  rPlaceholder.dataset.rph='1';
+}
+function moveRoutineDrag(y){
+  if(!rDragType)return;
+  const container=document.getElementById('r'+rDragType+'-items');
+  if(!container)return;
+  const items=[...container.querySelectorAll('.routine-item:not(.sort-ghost)')];
+  let insertBefore=null;
+  for(const c of items){const r=c.getBoundingClientRect();if(y<r.top+r.height/2){insertBefore=c;break;}}
+  if(insertBefore)container.insertBefore(rPlaceholder,insertBefore);
+  else container.appendChild(rPlaceholder);
+}
+function endRoutineDrag(){
+  if(!rDragType)return;
+  const container=document.getElementById('r'+rDragType+'-items');
+  if(container&&rPlaceholder){
+    const newOrder=[];
+    [...container.children].forEach(el=>{
+      if(el.dataset.rph)newOrder.push(parseInt(rDragId));
+      else if(el.dataset.rid){const rid=parseInt(el.dataset.rid);if(rid!==parseInt(rDragId))newOrder.push(rid);}
+    });
+    // remap routines array by new order
+    const map=Object.fromEntries(routines[rDragType].map(r=>[r.id,r]));
+    routines[rDragType]=newOrder.map(id=>map[id]).filter(Boolean);
+    sv('ac_routines',routines);
+  }
+  rDragType=null;rDragId=null;
+  if(rPlaceholder){rPlaceholder.remove();rPlaceholder=null;}
+  renderRoutines();
+}
+
+const WEEKDAYS=['','月','火','水','木','金','土','日'];
+function renderRoutines(){
+  // weekly
+  const wel=document.getElementById('rw-items');
+  wel.innerHTML='';
+  routines.w.forEach(r=>{
+    const dn=routineDone.has(r.id);
+    const sel=WEEKDAYS.map((d,i)=>i===0?'':`<option value="${i}"${r.date==i?' selected':''}>${d}曜日</option>`).join('');
+    const div=document.createElement('div');
+    div.className='routine-item'+(dn?' ri-done':'');
+    div.dataset.rid=r.id;
+    div.innerHTML=`<div class="ri-handle">⠿</div>
+      <div class="ri-check" onclick="toggleRoutineDone(${r.id})">${dn?CHK_R:''}</div>
+      <div class="ri-label">${r.title}</div>
+      <div class="ri-date"><select onchange="updateRoutineDate('w',${r.id},this.value)"><option value="">曜日</option>${sel}</select></div>
+      <button class="ri-del" onclick="delRoutine('w',${r.id})">×</button>`;
+    div.querySelector('.ri-handle').addEventListener('mousedown',e=>{e.preventDefault();startRoutineDrag('w',r.id,div);});
+    div.querySelector('.ri-handle').addEventListener('touchstart',e=>{startRoutineDrag('w',r.id,div);},{passive:true});
+    wel.appendChild(div);
+  });
+
+  // monthly
+  const mel=document.getElementById('rm-items');
+  mel.innerHTML='';
+  routines.m.forEach(r=>{
+    const dn=routineDone.has(r.id);
+    const days=Array.from({length:31},(_,i)=>`<option value="${i+1}"${r.date==i+1?' selected':''}>${i+1}日</option>`).join('');
+    const div=document.createElement('div');
+    div.className='routine-item'+(dn?' ri-done':'');
+    div.dataset.rid=r.id;
+    div.innerHTML=`<div class="ri-handle">⠿</div>
+      <div class="ri-check" onclick="toggleRoutineDone(${r.id})">${dn?CHK_R:''}</div>
+      <div class="ri-label">${r.title}</div>
+      <div class="ri-date"><select onchange="updateRoutineDate('m',${r.id},this.value)"><option value="">日付</option>${days}</select></div>
+      <button class="ri-del" onclick="delRoutine('m',${r.id})">×</button>`;
+    div.querySelector('.ri-handle').addEventListener('mousedown',e=>{e.preventDefault();startRoutineDrag('m',r.id,div);});
+    div.querySelector('.ri-handle').addEventListener('touchstart',e=>{startRoutineDrag('m',r.id,div);},{passive:true});
+    mel.appendChild(div);
+  });
+}
+
+// ── PROJECT ──
+let projects=ld('ac_projects',[]);
+let projFilter='all';
+let currentProjId=null;
+let editingProjId=null;
+
+function persistProj(){sv('ac_projects',projects);}
+
+function switchTab(tab){
+  document.getElementById('taskSection').style.display=tab==='task'?'block':'none';
+  document.getElementById('projectSection').style.display=tab==='project'?'block':'none';
+  document.getElementById('tabTask').classList.toggle('active',tab==='task');
+  document.getElementById('tabProject').classList.toggle('active',tab==='project');
+  if(tab==='project')renderProjList();
+}
+
+function setProjFilter(f,btn){
+  projFilter=f;
+  document.querySelectorAll('.proj-filter').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if(currentProjId)renderProjDetail(currentProjId);else renderProjList();
+}
+
+function projIconClass(co){
+  return{kobashi:'pi-kobashi',tsukushi:'pi-tsukushi',both:'pi-both',private:'pi-private'}[co]||'pi-both';
+}
+function projIconLetter(co){return{kobashi:'小',tsukushi:'つ',both:'共',private:'私'}[co]||'共';}
+function projBadgeStyle(co){
+  const m={kobashi:'background:#e6f1fb;color:#185fa5',tsukushi:'background:#eaf3de;color:#3b6d11',both:'background:#eeedfe;color:#534ab7',private:'background:rgba(220,100,130,0.15);color:#a0304a'};
+  return m[co]||m.both;
+}
+
+function openNewProject(){
+  editingProjId=null;
+  document.getElementById('projModalTitle').textContent='新規プロジェクト';
+  document.getElementById('projName').value='';
+  document.getElementById('projCo').value='both';
+  document.getElementById('projDeadline').value='';
+  document.getElementById('projOverlay').style.display='flex';
+  setTimeout(()=>document.getElementById('projName').focus(),50);
+}
+function openEditProject(id){
+  const p=projects.find(p=>p.id===id);if(!p)return;
+  editingProjId=id;
+  document.getElementById('projModalTitle').textContent='プロジェクトを編集';
+  document.getElementById('projName').value=p.name;
+  document.getElementById('projCo').value=p.company;
+  document.getElementById('projDeadline').value=p.deadline||'';
+  document.getElementById('projOverlay').style.display='flex';
+  setTimeout(()=>document.getElementById('projName').focus(),50);
+}
+function closeProjModal(){document.getElementById('projOverlay').style.display='none';}
+function saveProjModal(){
+  const name=document.getElementById('projName').value.trim();
+  if(!name)return;
+  const co=document.getElementById('projCo').value;
+  const dl=document.getElementById('projDeadline').value;
+  if(editingProjId){
+    const p=projects.find(p=>p.id===editingProjId);
+    if(p){p.name=name;p.company=co;p.deadline=dl;}
+  } else {
+    projects.push({id:nid++,name,company:co,deadline:dl,subtasks:[]});
+  }
+  persistProj();sv('ac_nid',nid);
+  closeProjModal();
+  if(currentProjId)renderProjDetail(currentProjId);else renderProjList();
+}
+function deleteProject(id){
+  projects=projects.filter(p=>p.id!==id);
+  persistProj();
+  currentProjId=null;
+  renderProjList();
+  document.getElementById('projListView').style.display='block';
+  document.getElementById('projDetailView').style.display='none';
+}
+
+function addSubtask(projId){
+  const ti=document.getElementById('st-input-'+projId);
+  const di=document.getElementById('st-date-'+projId);
+  if(!ti||!ti.value.trim())return;
+  const p=projects.find(p=>p.id===projId);
+  if(!p)return;
+  p.subtasks.push({id:nid++,title:ti.value.trim(),date:di?di.value:'',done:false});
+  ti.value='';if(di)di.value='';
+  persistProj();sv('ac_nid',nid);
+  renderProjDetail(projId);
+}
+function toggleSubtask(projId,stId){
+  const p=projects.find(p=>p.id===projId);if(!p)return;
+  const st=p.subtasks.find(s=>s.id===stId);if(!st)return;
+  st.done=!st.done;
+  // sync matching task by fromTaskId or title
+  const matchTask=st.fromTaskId
+    ?tasks.find(t=>t.id===st.fromTaskId)
+    :tasks.find(t=>t.title===st.title);
+  if(matchTask){
+    if(st.done)done.add(matchTask.id);else done.delete(matchTask.id);
+    // move in tasks array
+    tasks=tasks.filter(x=>x.id!==matchTask.id);
+    if(st.done){
+      let lastIdx=tasks.reduce((acc,x,i)=>x.q===matchTask.q?i:acc,-1);
+      tasks.splice(lastIdx+1,0,matchTask);
+    } else {
+      let firstIdx=tasks.findIndex(x=>x.q===matchTask.q);
+      if(firstIdx===-1)tasks.push(matchTask);else tasks.splice(firstIdx,0,matchTask);
+    }
+    persist();
+  }
+  persistProj();
+  if(document.getElementById('projDetailView').style.display!=='none')renderProjDetail(projId);
+  render();
+}
+function deleteSubtask(projId,stId){
+  const p=projects.find(p=>p.id===projId);if(!p)return;
+  p.subtasks=p.subtasks.filter(s=>s.id!==stId);
+  persistProj();renderProjDetail(projId);
+}
+function updateSubtaskDate(projId,stId,val){
+  const p=projects.find(p=>p.id===projId);if(!p)return;
+  const st=p.subtasks.find(s=>s.id===stId);if(st)st.date=val;
+  persistProj();
+}
+function addTaskToProject(projId,taskId){
+  const t=tasks.find(t=>t.id===taskId);const p=projects.find(p=>p.id===projId);
+  if(!t||!p)return;
+  p.subtasks.push({id:nid++,title:t.title,date:t.date||'',done:false,fromTaskId:taskId});
+  persistProj();sv('ac_nid',nid);
+  renderProjDetail(projId);
+}
+
+function renderProjList(){
+  currentProjId=null;
+  document.getElementById('projListView').style.display='block';
+  document.getElementById('projDetailView').style.display='none';
+  const el=document.getElementById('projListView');
+  const filtered=projects.filter(p=>projFilter==='all'||p.company===projFilter||(projFilter==='both'&&p.company==='both'));
+  let html=`<div class="proj-grid">`;
+  filtered.forEach(p=>{
+    const total=p.subtasks.length,done2=p.subtasks.filter(s=>s.done).length;
+    const pct=total?Math.round(done2/total*100):0;
+    const fillColor=pct>=70?'#27ae60':pct>=30?'#e67e22':'#c0392b';
+    html+=`<div class="proj-card" onclick="renderProjDetail(${p.id})">
+      <div class="proj-card-top">
+        <div class="proj-icon ${projIconClass(p.company)}">${projIconLetter(p.company)}</div>
+        <div><div class="proj-name">${p.name}</div><div class="proj-meta">${CONAME[p.company]}${p.deadline?' / '+p.deadline.replace(/-/g,'/'):''}${total?' / '+total+'タスク':''}</div></div>
+      </div>
+      <div class="proj-prog-bar"><div class="proj-prog-fill" style="width:${pct}%;background:${fillColor};"></div></div>
+      <div class="proj-prog-label"><span>${done2}/${total} 完了</span><span>${pct}%</span></div>
+    </div>`;
+  });
+  html+=`<div class="proj-add-card" onclick="openNewProject()">+ 新規プロジェクト</div></div>`;
+  if(!filtered.length)html='<div style="font-size:13px;color:var(--text2);padding:12px 0;">プロジェクトなし。+ 新規プロジェクトから作成してください。</div>';
+  el.innerHTML=html;
+}
+
+function renderProjDetail(projId){
+  currentProjId=projId;
+  document.getElementById('projListView').style.display='none';
+  const dv=document.getElementById('projDetailView');
+  dv.style.display='block';
+  const p=projects.find(p=>p.id===projId);if(!p){renderProjList();return;}
+  const total=p.subtasks.length,dn=p.subtasks.filter(s=>s.done).length;
+  const pct=total?Math.round(dn/total*100):0;
+  const fillColor=pct>=70?'#27ae60':pct>=30?'#e67e22':'#c0392b';
+  // related tasks (not yet in subtasks)
+  const stTitles=new Set(p.subtasks.map(s=>s.title));
+  const relTasks=tasks.filter(t=>!stTitles.has(t.title)&&(t.company===p.company||p.company==='both'||t.company==='both'));
+  const stHTML=p.subtasks.map(s=>`
+    <div class="subtask-item${s.done?' done-st':''}">
+      <div class="st-chk" onclick="toggleSubtask(${projId},${s.id})">${s.done?CHK:''}</div>
+      <div class="st-label">${s.title}</div>
+      <input type="date" class="st-date-in" value="${s.date||''}" onchange="updateSubtaskDate(${projId},${s.id},this.value)" />
+      <button class="st-del" onclick="deleteSubtask(${projId},${s.id})">×</button>
+    </div>`).join('');
+  const relHTML=relTasks.length?`<div class="task-to-proj">
+    <div class="ttp-label">タスクからサブタスクに追加</div>
+    <div class="ttp-list">${relTasks.map(t=>`
+      <div class="ttp-item">
+        <div class="ttp-item-title">${t.title}</div>
+        <button class="ttp-add-btn" onclick="addTaskToProject(${projId},${t.id})">追加</button>
+      </div>`).join('')}
+    </div></div>`:'';
+  dv.innerHTML=`<div class="pd-wrap">
+    <div class="pd-hdr">
+      <button class="pd-back" onclick="renderProjList()">← 一覧</button>
+      <div class="pd-title">${p.name}</div>
+      <span class="pd-co-badge" style="${projBadgeStyle(p.company)}">${CONAME[p.company]}</span>
+      ${p.deadline?`<span class="pd-deadline">${p.deadline.replace(/-/g,'/')}</span>`:''}
+      <button class="pd-edit-btn" onclick="openEditProject(${projId})">✎ 編集</button>
+      <button class="pd-del-btn" onclick="deleteProject(${projId})">削除</button>
+    </div>
+    <div class="pd-prog">
+      <div class="pd-prog-lbl"><span>進捗</span><span>${pct}%</span></div>
+      <div class="pd-prog-bar"><div class="pd-prog-fill" style="width:${pct}%;background:${fillColor};"></div></div>
+      <div class="pd-prog-lbl"><span style="color:var(--text3);">${dn}/${total} 完了</span></div>
+    </div>
+    <div class="subtask-list">${stHTML||'<div style="font-size:12px;color:var(--text3);padding:4px 0;">サブタスクなし</div>'}</div>
+    <div class="st-add-row">
+      <input id="st-input-${projId}" placeholder="サブタスクを追加…" onkeydown="if(event.key==='Enter'&&!event.isComposing)addSubtask(${projId})" />
+      <input type="date" id="st-date-${projId}" />
+      <button class="st-add-btn" onclick="addSubtask(${projId})">追加</button>
+    </div>
+    ${relHTML}
+  </div>`;
+}
+
+function render(){if(view==='matrix')renderMatrix();else renderList();}
+render();renderInbox();renderShibu();renderRoutines();
+// init routine bodies visible
+['rw','rm'].forEach(id=>{const b=document.getElementById(id+'-body');b.style.display='flex';b.style.flexDirection='column';});
+</script>
+</body>
+</html>
